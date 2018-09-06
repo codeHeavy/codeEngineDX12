@@ -9,6 +9,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreviousInstance, LPSTR lpCmd
 		return 0;
 	}
 
+	if (!DX12System::GetInstance()->InitD3D())
+	{
+		MessageBox(0, L"Direct3D Initialization Falied", L"Error", MB_OK);
+		DX12System::GetInstance()->Cleanup();
+		return 1;
+	}
 	DX12System::GetInstance()->UpdateLoop();
+	DX12System::GetInstance()->Cleanup();
 	return 0;
 }

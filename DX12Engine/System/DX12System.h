@@ -64,5 +64,15 @@ public:
 	int adapterIndex = 0;
 	bool adapterFound = false;
 	bool running = true;
+
+	// To draw objects
+	ID3D12PipelineState* pipelineStateObjectl;					// pso containing a pipeline state
+	ID3D12RootSignature* rootSignature;
+	D3D12_VIEWPORT viewport;
+	D3D12_RECT	scissorRect;									// cuttoff rectangle
+	ID3D12Resource* vertexBuffer;								// vertex buffer
+	D3D12_VERTEX_BUFFER_VIEW vertexBufferView;					// struct of vertex data in GPU mem
+
+	bool SetupResources();
 };
 

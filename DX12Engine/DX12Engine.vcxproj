@@ -154,6 +154,7 @@
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="System\DX12System.h" />
+    <ClInclude Include="System\Vertex.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

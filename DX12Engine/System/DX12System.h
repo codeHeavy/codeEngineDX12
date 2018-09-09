@@ -1,5 +1,6 @@
 #pragma once
 #include "../stdafx.h"
+#include "Vertex.h"
 
 #ifndef BUFFERCOUNT
 #define BUFFERCOUNT 3
@@ -25,8 +26,8 @@ public:
 	LPCWSTR windowTitle = L"DX12Engine";	// Window title
 
 	// Size of the window
-	int height = 720;
-	int width = 1024;
+	int height = 600;
+	int width = 800;
 
 	// Window properties
 	bool fullscreen = false;
@@ -56,6 +57,8 @@ public:
 	void Render();												// render the screen
 	void Cleanup();												// release and cleanup
 	void WaitForPreviousFrame();								// wait for GPU to sync wityh CPU
+	bool SetupResources();										// Setup resources to draw
+	void Draw();												// Set command lists to draw
 
 	ID3D12Device1* device;
 	IDXGIAdapter1* adapter;
@@ -66,13 +69,12 @@ public:
 	bool running = true;
 
 	// To draw objects
-	ID3D12PipelineState* pipelineStateObjectl;					// pso containing a pipeline state
+	ID3D12PipelineState* pipelineStateObject;					// pso containing a pipeline state
 	ID3D12RootSignature* rootSignature;
 	D3D12_VIEWPORT viewport;
 	D3D12_RECT	scissorRect;									// cuttoff rectangle
 	ID3D12Resource* vertexBuffer;								// vertex buffer
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView;					// struct of vertex data in GPU mem
-
-	bool SetupResources();
+	DXGI_SAMPLE_DESC sampleDesc;
 };
 

@@ -15,6 +15,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreviousInstance, LPSTR lpCmd
 		DX12System::GetInstance()->Cleanup();
 		return 1;
 	}
+
+	if (!DX12System::GetInstance()->SetupResources())
+	{
+		MessageBox(0, L"Resource Initialization Falied", L"Error", MB_OK);
+		DX12System::GetInstance()->Cleanup();
+		return 1;
+	}
+
 	DX12System::GetInstance()->UpdateLoop();
 	DX12System::GetInstance()->Cleanup();
 	return 0;

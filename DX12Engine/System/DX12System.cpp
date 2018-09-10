@@ -350,9 +350,10 @@ bool DX12System::SetupResources()
 
 	// Triangle vertices
 	Vertex vertexList[] = {
-		{ 0.0f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f },
-		{ 0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f },
+		{ -0.5f,  0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f },
+		{ 0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f  },
 		{ -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f },
+		{ 0.5f,  0.5f, 0.5f, 1.0f, 0.0f, 1.0f, 1.0f  }
 	};
 
 	int vertexBufferSize = sizeof(vertexList);
@@ -397,6 +398,54 @@ bool DX12System::SetupResources()
 
 	// transition vertex buffer data from copy destination satte to vertex buffer state
 	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(vertexBuffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER));
+
+	// Create Index Buffer
+
+	DWORD indexBufferList[] = {
+		0,1,2,
+		0,3,1
+	};
+	int indexBufferSize = sizeof(indexBufferList);
+	// Create default heap for index buffer
+	device->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+		D3D12_HEAP_FLAG_NONE,
+		&CD3DX12_RESOURCE_DESC::Buffer(indexBufferSize),
+		D3D12_RESOURCE_STATE_COPY_DEST,
+		nullptr,
+		IID_PPV_ARGS(&indexBuffer));
+
+	indexBuffer->SetName(L"Index buffer resource heap");
+	
+	// create upload heap of index buffer
+	ID3D12Resource* indexBufferUploadHeap;
+	device->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+		D3D12_HEAP_FLAG_NONE,
+		&CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize),
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&indexBufferUploadHeap)
+	);
+	indexBufferUploadHeap->SetName(L"Index Buffer Upload Rourse Heap");
+	
+	// store data in upload heap
+	D3D12_SUBRESOURCE_DATA indexData = {};
+	indexData.pData = reinterpret_cast<BYTE*>(indexBufferList);
+	indexData.RowPitch = indexBufferSize;
+	indexData.SlicePitch = indexBufferSize;
+
+	//command to copy the data to upload heap
+	UpdateSubresources(commandList, indexBuffer, indexBufferUploadHeap, 0, 0, 1, &indexData);
+
+	// tranmsition from copy buffer to vertex buffer
+	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(indexBuffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER));
+
+	// create index buffer view
+	indexBufferView.BufferLocation = indexBuffer->GetGPUVirtualAddress();
+	indexBufferView.Format = DXGI_FORMAT_R32_UINT;
+	indexBufferView.SizeInBytes = indexBufferSize;
+
 
 	// Execute command list to upload initial assets
 	commandList->Close();
@@ -503,7 +552,8 @@ void DX12System::Draw()
 	commandList->RSSetScissorRects(1, &scissorRect);
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
-	commandList->DrawInstanced(3, 1, 0, 0);
+	commandList->IASetIndexBuffer(&indexBufferView);
+	commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
 }
 
 //----------------------------------------------------------------------

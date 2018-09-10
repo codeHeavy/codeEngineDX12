@@ -76,5 +76,10 @@ public:
 	ID3D12Resource* vertexBuffer;								// vertex buffer
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView;					// struct of vertex data in GPU mem
 	DXGI_SAMPLE_DESC sampleDesc;
+
+	// IndexBuffers
+	ID3D12Resource* indexBuffer;
+	D3D12_INDEX_BUFFER_VIEW indexBufferView;
+
 };
 

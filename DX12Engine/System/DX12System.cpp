@@ -350,10 +350,17 @@ bool DX12System::SetupResources()
 
 	// Triangle vertices
 	Vertex vertexList[] = {
-		{ -0.5f,  0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f },
-		{ 0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f  },
-		{ -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f },
-		{ 0.5f,  0.5f, 0.5f, 1.0f, 0.0f, 1.0f, 1.0f  }
+		// first quad (closer to camera, blue)
+		{ -0.5f,  0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f },
+	{ 0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f },
+	{ -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f },
+	{ 0.5f,  0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f },
+
+	// second quad (further from camera, green)
+	{ -0.75f,  0.75f,  0.7f, 0.0f, 1.0f, 0.0f, 1.0f },
+	{ 0.0f,  0.0f, 0.7f, 0.0f, 1.0f, 0.0f, 1.0f },
+	{ -0.75f,  0.0f, 0.7f, 0.0f, 1.0f, 0.0f, 1.0f },
+	{ 0.0f,  0.75f,  0.7f, 0.0f, 1.0f, 0.0f, 1.0f }
 	};
 
 	int vertexBufferSize = sizeof(vertexList);
@@ -446,7 +453,20 @@ bool DX12System::SetupResources()
 	indexBufferView.Format = DXGI_FORMAT_R32_UINT;
 	indexBufferView.SizeInBytes = indexBufferSize;
 
+	// Create depth stencil
+	psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 
+	// Create depth stencil descriptor heap
+	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
+	dsvHeapDesc.NumDescriptors = 1;
+	dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+	dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+
+	hr = device->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&dsDescriptorHeap));
+	if (FAILED(hr))
+	{
+		running = false;
+	}
 	// Execute command list to upload initial assets
 	commandList->Close();
 	ID3D12CommandList* ppCommandLists[] = { commandList };

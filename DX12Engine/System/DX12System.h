@@ -81,5 +81,9 @@ public:
 	ID3D12Resource* indexBuffer;
 	D3D12_INDEX_BUFFER_VIEW indexBufferView;
 
+	// Depth stencil
+	ID3D12Resource* depthStencilBuffer;
+	ID3D12DescriptorHeap* dsDescriptorHeap;
+
 };
 

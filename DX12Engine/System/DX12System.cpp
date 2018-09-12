@@ -467,6 +467,28 @@ bool DX12System::SetupResources()
 	{
 		running = false;
 	}
+
+	D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilDesc = {};
+	depthStencilDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	depthStencilDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+	depthStencilDesc.Flags = D3D12_DSV_FLAG_NONE;
+
+	D3D12_CLEAR_VALUE depthOptimizedClearVlaue = {};
+	depthOptimizedClearVlaue.Format = DXGI_FORMAT_D32_FLOAT;
+	depthOptimizedClearVlaue.DepthStencil.Depth = 1.0f;
+	depthOptimizedClearVlaue.DepthStencil.Stencil = 0;
+
+	device->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+		D3D12_HEAP_FLAG_NONE,
+		&CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_D32_FLOAT, width, height, 1, 0, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL),
+		D3D12_RESOURCE_STATE_DEPTH_WRITE,
+		&depthOptimizedClearVlaue,
+		IID_PPV_ARGS(&depthStencilBuffer)
+	);
+	dsDescriptorHeap->SetName(L"Depth/Stencil Resource Heap");
+	device->CreateDepthStencilView(depthStencilBuffer, &depthStencilDesc, dsDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+
 	// Execute command list to upload initial assets
 	commandList->Close();
 	ID3D12CommandList* ppCommandLists[] = { commandList };
@@ -542,8 +564,11 @@ void DX12System::UpdatePipeline()
 	// get handle of current RTV to set as render target in OM stage
 	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(rtvDescrioptorHeap->GetCPUDescriptorHandleForHeapStart(), frameIndex, rtvDescriptorSize);
 
+	// get handle to depth stencil buffer
+	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(dsDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+
 	// set render target for OM stage
-	commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+	commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
 	// Clear render target
 	const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
@@ -566,6 +591,8 @@ void DX12System::UpdatePipeline()
 //----------------------------------------------------------------------
 void DX12System::Draw()
 {
+	// clear depth stencil buffer
+	commandList->ClearDepthStencilView(dsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 	// draw triangle
 	commandList->SetGraphicsRootSignature(rootSignature);
 	commandList->RSSetViewports(1, &viewport);
@@ -574,6 +601,7 @@ void DX12System::Draw()
 	commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
 	commandList->IASetIndexBuffer(&indexBufferView);
 	commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
+	commandList->DrawIndexedInstanced(6, 1, 0, 4, 0);
 }
 
 //----------------------------------------------------------------------
@@ -636,6 +664,8 @@ void DX12System::Cleanup()
 	SAFE_RELEASE(pipelineStateObject);
 	SAFE_RELEASE(rootSignature);
 	SAFE_RELEASE(vertexBuffer);
+	SAFE_RELEASE(depthStencilBuffer);
+	SAFE_RELEASE(dsDescriptorHeap);
 }
 
 //----------------------------------------------------------------------

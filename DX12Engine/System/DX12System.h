@@ -1,6 +1,7 @@
 #pragma once
 #include "../stdafx.h"
 #include "Vertex.h"
+#include "ConstantBuffer.h"
 
 #ifndef BUFFERCOUNT
 #define BUFFERCOUNT 3
@@ -84,6 +85,12 @@ public:
 	// Depth stencil
 	ID3D12Resource* depthStencilBuffer;
 	ID3D12DescriptorHeap* dsDescriptorHeap;
+
+	// Constant buffers
+	ID3D12DescriptorHeap* mainDescriptorHeap[BUFFERCOUNT];		// descriptor for constant buffer
+	ID3D12Resource* constantBufferUploadHeap[BUFFERCOUNT];		// mem on GPU for constant buffer
+	ConstantBuffer colorMultiplier;
+	UINT8* colorMultiplierGPUAddress[BUFFERCOUNT];				// pointer to memory location
 
 };
 

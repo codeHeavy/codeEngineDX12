@@ -87,10 +87,29 @@ public:
 	ID3D12DescriptorHeap* dsDescriptorHeap;
 
 	// Constant buffers
-	ID3D12DescriptorHeap* mainDescriptorHeap[BUFFERCOUNT];		// descriptor for constant buffer
+	//ID3D12DescriptorHeap* mainDescriptorHeap[BUFFERCOUNT];		// descriptor for constant buffer
+	
 	ID3D12Resource* constantBufferUploadHeap[BUFFERCOUNT];		// mem on GPU for constant buffer
-	ConstantBuffer colorMultiplier;
-	UINT8* colorMultiplierGPUAddress[BUFFERCOUNT];				// pointer to memory location
+	ConstantBuffer constantBufferPerObject;
+	UINT8* constantBufferGPUAddress[BUFFERCOUNT];				// pointer to memory location
 
+	XMFLOAT4X4 camProjMat;
+	XMFLOAT4X4 camViewMat;
+
+	XMFLOAT4 camPos;
+	XMFLOAT4 camTarget;
+	XMFLOAT4 camUp;
+
+	XMFLOAT4X4 cube1WorldMat;
+	XMFLOAT4X4 cube1RotMat;
+	XMFLOAT4 cube1Pos;
+
+	XMFLOAT4X4 cube2WorldMat;
+	XMFLOAT4X4 cube2RotMat;
+	XMFLOAT4 cube2Pos;
+
+	int numCubeIndices;
+
+	void BuildViewProjMatrix();
 };
 

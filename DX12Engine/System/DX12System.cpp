@@ -227,7 +227,7 @@ bool DX12System::InitD3D()
 	}
 
 	// Command List - # equals the number of threads
-	hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator[0], NULL, IID_PPV_ARGS(&commandList));
+	hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator[frameIndex], NULL, IID_PPV_ARGS(&commandList));
 	if (FAILED(hr))
 	{
 		return false;
@@ -804,7 +804,7 @@ void DX12System::UpdatePipeline()
 
 	// Clear render target
 	const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
-	commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+	commandList->ClearRenderTargetView(rtvHandle, clearColor, FALSE, nullptr);
 
 	
 

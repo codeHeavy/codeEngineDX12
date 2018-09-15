@@ -155,6 +155,7 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="System\ConstantBuffer.h" />
     <ClInclude Include="System\DX12System.h" />
+    <ClInclude Include="System\ImageLoader.h" />
     <ClInclude Include="System\Vertex.h" />
   </ItemGroup>
   <ItemGroup>

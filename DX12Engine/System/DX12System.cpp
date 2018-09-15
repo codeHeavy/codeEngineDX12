@@ -266,20 +266,6 @@ bool DX12System::InitD3D()
 bool DX12System::SetupResources()
 {
 	HRESULT hr;
-	//rootSignatureDesc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-
-	//// Root Parameters and constant buffers
-	//D3D12_DESCRIPTOR_RANGE descriptorTableRanges[1];
-	//descriptorTableRanges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-	//descriptorTableRanges[0].NumDescriptors = 1;	//	only one constant buffer
-	//descriptorTableRanges[0].BaseShaderRegister = 0; // base inde of shader registers
-	//descriptorTableRanges[0].RegisterSpace = 0;
-	//descriptorTableRanges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-
-	//// create descriptor table
-	//D3D12_ROOT_DESCRIPTOR_TABLE descriptorTable;
-	//descriptorTable.NumDescriptorRanges = _countof(descriptorTableRanges);
-	//descriptorTable.pDescriptorRanges = &descriptorTableRanges[0];
 
 	//	create a root descriptor 
 	D3D12_ROOT_DESCRIPTOR	rootCBVDescriptor;
@@ -387,7 +373,7 @@ bool DX12System::SetupResources()
 	// Triangle vertices
 	Vertex vertexList[] = {
 		// front face
-		{ -0.5f,  0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f },
+	{ -0.5f,  0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f },
 	{ 0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 1.0f, 1.0f },
 	{ -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 1.0f },
 	{ 0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f },
@@ -531,10 +517,7 @@ bool DX12System::SetupResources()
 	// tranmsition from copy buffer to vertex buffer
 	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(indexBuffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER));
 
-	
-
 	// Create depth stencil
-	//psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 	// Create depth stencil descriptor heap
 	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
 	dsvHeapDesc.NumDescriptors = 1;
@@ -568,22 +551,6 @@ bool DX12System::SetupResources()
 	dsDescriptorHeap->SetName(L"Depth/Stencil Resource Heap");
 	device->CreateDepthStencilView(depthStencilBuffer, &depthStencilDesc, dsDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 
-
-
-	//// Constant buffer descriptor heap
-	//for (int i = 0; i < BUFFERCOUNT; i++)
-	//{
-	//	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
-	//	heapDesc.NumDescriptors = 1;
-	//	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	//	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	//	hr = device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&mainDescriptorHeap[i]));
-	//	if (FAILED(hr))
-	//	{
-	//		running = false;
-	//	}
-	//}
-
 	// create constant buffer resource heap
 	// Resource heaps must be multiples of 64KB of size
 
@@ -600,13 +567,6 @@ bool DX12System::SetupResources()
 		constantBufferUploadHeap[i]->SetName(L"Constant Buffer Upload Resource Heap");
 		ZeroMemory(&constantBufferPerObject, sizeof(constantBufferPerObject));
 		CD3DX12_RANGE readRange(0, 0);    // We do not intend to read from this resource on the CPU. (End is less than or equal to begin)
-
-		//// create constant buffer view
-		//D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
-		//cbvDesc.BufferLocation = constantBufferUploadHeap[i]->GetGPUVirtualAddress();
-		//cbvDesc.SizeInBytes = (sizeof(ConstantBuffer) + 255) & ~255; // CB size must be 256 byte aligned
-		//device->CreateConstantBufferView(&cbvDesc, mainDescriptorHeap[i]->GetCPUDescriptorHandleForHeapStart());
-
 
 		hr = constantBufferUploadHeap[i]->Map(0, &readRange, reinterpret_cast<void**>(&constantBufferGPUAddress[i]));
 

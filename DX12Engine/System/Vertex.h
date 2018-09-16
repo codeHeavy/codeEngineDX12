@@ -4,7 +4,9 @@
 using namespace DirectX;
 
 struct Vertex {
-		Vertex(float x, float y, float z, float u, float v) : position(x, y, z), texCoord(u, v) {}
+		Vertex(float x, float y, float z, float u, float v) : position(x, y, z), uv(u, v) {}
+		Vertex() {};
 		XMFLOAT3 position;
-		XMFLOAT2 texCoord;
+		XMFLOAT2 uv;
+		XMFLOAT3 normal;
 };

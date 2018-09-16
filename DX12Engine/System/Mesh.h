@@ -16,6 +16,7 @@ private:
 	void CreateIndexBuffer(int* indexList, ID3D12Device1* device, ID3D12GraphicsCommandList* commandList);
 public:
 	Mesh(Vertex* vertexList, int numverts, int* indexList,  int numindices, ID3D12Device1* device, ID3D12GraphicsCommandList* commandList);
+	Mesh(const char* objFile, ID3D12Device1* device, ID3D12GraphicsCommandList* commandList);
 	~Mesh();
 	ID3D12Resource* GetVertexBuffer();
 	ID3D12Resource* GetIndexBuffer();

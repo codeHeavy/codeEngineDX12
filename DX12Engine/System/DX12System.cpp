@@ -543,8 +543,7 @@ bool DX12System::SetupResources()
 	//int indexBufferSize = sizeof(indexBufferList);
 	numCubeIndices = sizeof(indexBufferList) / sizeof(indexBufferList[0]);
 
-	mesh = new Mesh(vertexList,numVerts,indexBufferList,numCubeIndices, device, commandList);
-
+	mesh = new Mesh("Assets/Models/cone.obj", device, commandList);
 	// Create depth stencil
 	// Create depth stencil descriptor heap
 	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};

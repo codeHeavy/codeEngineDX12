@@ -3,6 +3,7 @@
 #include "Vertex.h"
 #include "ConstantBuffer.h"
 
+
 #ifndef BUFFERCOUNT
 #define BUFFERCOUNT 3
 #endif // frame buffer count
@@ -111,5 +112,10 @@ public:
 	int numCubeIndices;
 
 	void BuildViewProjMatrix();
+
+	// Texturing 
+	ID3D12Resource* textureBuffer;
+	ID3D12DescriptorHeap* mainDescriptorHeap;
+	ID3D12Resource* textureBufferUploadHeap;
 };
 

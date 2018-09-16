@@ -442,7 +442,7 @@ bool DX12System::SetupResources()
 	};
 
 	int vertexBufferSize = sizeof(vertexList);
-
+	int numVerts = sizeof(vertexList) / sizeof(vertexList[0]);
 	// Load texture from file
 	D3D12_RESOURCE_DESC textureDesc;
 	int imageBytesPerRaw;
@@ -510,50 +510,12 @@ bool DX12System::SetupResources()
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = 1;
 	device->CreateShaderResourceView(textureBuffer, &srvDesc, mainDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
-	// Create default heap
-	// Default heap = memory in GPU
-	device->CreateCommittedResource(
-		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),	// default heap
-		D3D12_HEAP_FLAG_NONE,
-		&CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize),
-		D3D12_RESOURCE_STATE_COPY_DEST,	// start heap in copy location
-		nullptr,						// used for render targets and depth/stencil buffers
-		IID_PPV_ARGS(&vertexBuffer)
-	);
-
-	// Name for resource heaps
-	vertexBuffer->SetName(L"Vertex Buffer Resource Heap");
-
-	// Create upload heap
-	// Uplaod heap = upload data to the GPU
 	
-	// Upload vertex buffer
-	ID3D12Resource* vertexBufferUploadHeap;
-	device->CreateCommittedResource(
-		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-		D3D12_HEAP_FLAG_NONE,
-		&CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize),
-		D3D12_RESOURCE_STATE_GENERIC_READ,					// GPU will read from this and copy to default heap
-		nullptr,
-		IID_PPV_ARGS(&vertexBufferUploadHeap)
-		);
-	vertexBufferUploadHeap->SetName(L"Vertex Buffer Upload Resource Heap");
-
-	// Store vertex buffer in upload heap
-	D3D12_SUBRESOURCE_DATA vertexData = {};
-	vertexData.pData = reinterpret_cast<BYTE*>(vertexList);	// pointer to vertex array
-	vertexData.RowPitch = vertexBufferSize;					// size of all triangle data
-	vertexData.SlicePitch = vertexBufferSize;				// size of triangle data
-
-	// Command from command list to copy data from upload heap to default heap
-	UpdateSubresources(commandList, vertexBuffer, vertexBufferUploadHeap, 0, 0, 1, &vertexData);
-
-	// transition vertex buffer data from copy destination satte to vertex buffer state
-	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(vertexBuffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER));
+	
 
 	// Create Index Buffer
 
-	DWORD indexBufferList[] = {
+	int indexBufferList[] = {
 		// ffront face
 		0, 1, 2, // first triangle
 		0, 3, 1, // second triangle
@@ -578,43 +540,10 @@ bool DX12System::SetupResources()
 		20, 21, 22, // first triangle
 		20, 23, 21, // second triangle
 	};
-	int indexBufferSize = sizeof(indexBufferList);
+	//int indexBufferSize = sizeof(indexBufferList);
 	numCubeIndices = sizeof(indexBufferList) / sizeof(indexBufferList[0]);
 
-	// Create default heap for index buffer
-	device->CreateCommittedResource(
-		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-		D3D12_HEAP_FLAG_NONE,
-		&CD3DX12_RESOURCE_DESC::Buffer(indexBufferSize),
-		D3D12_RESOURCE_STATE_COPY_DEST,
-		nullptr,
-		IID_PPV_ARGS(&indexBuffer));
-
-	indexBuffer->SetName(L"Index buffer resource heap");
-	
-	// create upload heap of index buffer
-	ID3D12Resource* indexBufferUploadHeap;
-	device->CreateCommittedResource(
-		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-		D3D12_HEAP_FLAG_NONE,
-		&CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize),
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		nullptr,
-		IID_PPV_ARGS(&indexBufferUploadHeap)
-	);
-	indexBufferUploadHeap->SetName(L"Index Buffer Upload Rourse Heap");
-	
-	// store data in upload heap
-	D3D12_SUBRESOURCE_DATA indexData = {};
-	indexData.pData = reinterpret_cast<BYTE*>(indexBufferList);
-	indexData.RowPitch = indexBufferSize;
-	indexData.SlicePitch = indexBufferSize;
-
-	//command to copy the data to upload heap
-	UpdateSubresources(commandList, indexBuffer, indexBufferUploadHeap, 0, 0, 1, &indexData);
-
-	// tranmsition from copy buffer to vertex buffer
-	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(indexBuffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER));
+	mesh = new Mesh(vertexList,numVerts,indexBufferList,numCubeIndices, device, commandList);
 
 	// Create depth stencil
 	// Create depth stencil descriptor heap
@@ -691,14 +620,14 @@ bool DX12System::SetupResources()
 	delete imageData;
 
 	// create a vertex buffer view for the triangle
-	vertexBufferView.BufferLocation = vertexBuffer->GetGPUVirtualAddress();
+	vertexBufferView.BufferLocation = mesh->GetVertexBuffer()->GetGPUVirtualAddress();
 	vertexBufferView.StrideInBytes = sizeof(Vertex);
-	vertexBufferView.SizeInBytes = vertexBufferSize;
+	vertexBufferView.SizeInBytes = mesh->GetVertSize();
 
 	// create index buffer view
-	indexBufferView.BufferLocation = indexBuffer->GetGPUVirtualAddress();
+	indexBufferView.BufferLocation = mesh->GetIndexBuffer()->GetGPUVirtualAddress();
 	indexBufferView.Format = DXGI_FORMAT_R32_UINT;
-	indexBufferView.SizeInBytes = indexBufferSize;
+	indexBufferView.SizeInBytes = mesh->GetIndexSize();
 
 	// Viewport
 	viewport.TopLeftX = 0;
@@ -907,8 +836,7 @@ void DX12System::Draw()
 	commandList->SetGraphicsRootConstantBufferView(0, constantBufferUploadHeap[frameIndex]->GetGPUVirtualAddress());
 
 	// draw first cube
-	commandList->DrawIndexedInstanced(numCubeIndices, 1, 0, 0, 0);
-
+	commandList->DrawIndexedInstanced(mesh->GetNumIndices(), 1, 0, 0, 0);
 	// second cube
 
 	// set cube2's constant buffer. You can see we are adding the size of ConstantBufferPerObject to the constant buffer
@@ -917,7 +845,7 @@ void DX12System::Draw()
 	commandList->SetGraphicsRootConstantBufferView(0, constantBufferUploadHeap[frameIndex]->GetGPUVirtualAddress() + ConstantBufferPerObjectAlignedSize);
 
 	// draw second cube
-	commandList->DrawIndexedInstanced(numCubeIndices, 1, 0, 0, 0);
+	commandList->DrawIndexedInstanced(mesh->GetNumIndices(), 1, 0, 0, 0);
 }
 
 //----------------------------------------------------------------------
@@ -979,7 +907,7 @@ void DX12System::Cleanup()
 	
 	SAFE_RELEASE(pipelineStateObject);
 	SAFE_RELEASE(rootSignature);
-	SAFE_RELEASE(vertexBuffer);
+	//SAFE_RELEASE(vertexBuffer);
 	SAFE_RELEASE(depthStencilBuffer);
 	SAFE_RELEASE(dsDescriptorHeap);
 

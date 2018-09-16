@@ -2,13 +2,13 @@
 #include "../stdafx.h"
 #include "Vertex.h"
 #include "ConstantBuffer.h"
-
+#include "Mesh.h"
 
 #ifndef BUFFERCOUNT
 #define BUFFERCOUNT 3
 #endif // frame buffer count
 
-#define SAFE_RELEASE(x) { if(x) { x->Release(); x = 0; } }
+
 const int frameBufferCount = BUFFERCOUNT;
 class DX12System
 {
@@ -75,12 +75,12 @@ public:
 	ID3D12RootSignature* rootSignature;
 	D3D12_VIEWPORT viewport;
 	D3D12_RECT	scissorRect;									// cuttoff rectangle
-	ID3D12Resource* vertexBuffer;								// vertex buffer
+	//ID3D12Resource* vertexBuffer;								// vertex buffer
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView;					// struct of vertex data in GPU mem
 	DXGI_SAMPLE_DESC sampleDesc;
 
 	// IndexBuffers
-	ID3D12Resource* indexBuffer;
+	//ID3D12Resource* indexBuffer;
 	D3D12_INDEX_BUFFER_VIEW indexBufferView;
 
 	// Depth stencil
@@ -117,5 +117,7 @@ public:
 	ID3D12Resource* textureBuffer;
 	ID3D12DescriptorHeap* mainDescriptorHeap;
 	ID3D12Resource* textureBufferUploadHeap;
+
+	Mesh* mesh;
 };
 

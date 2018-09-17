@@ -217,6 +217,16 @@ ID3D12Resource* Mesh::GetIndexBuffer()
 	return indexBuffer;
 }
 
+D3D12_VERTEX_BUFFER_VIEW Mesh::GetvBufferView()
+{
+	return vertexBufferView;
+}
+
+D3D12_INDEX_BUFFER_VIEW Mesh::GetiBufferView()
+{
+	return indexBufferView;
+}
+
 void Mesh::CreateVertexBuffer(Vertex* vertexList, ID3D12Device1* device, ID3D12GraphicsCommandList* commandList)
 {
 	// Create default heap
@@ -259,6 +269,11 @@ void Mesh::CreateVertexBuffer(Vertex* vertexList, ID3D12Device1* device, ID3D12G
 
 	// transition vertex buffer data from copy destination satte to vertex buffer state
 	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(vertexBuffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER));
+	
+	// create a vertex buffer view for the triangle
+	vertexBufferView.BufferLocation = vertexBuffer->GetGPUVirtualAddress();
+	vertexBufferView.StrideInBytes = sizeof(Vertex);
+	vertexBufferView.SizeInBytes = sizeVertBuffer;
 }
 
 void Mesh::CreateIndexBuffer(int* indexList, ID3D12Device1* device, ID3D12GraphicsCommandList* commandList)
@@ -297,4 +312,9 @@ void Mesh::CreateIndexBuffer(int* indexList, ID3D12Device1* device, ID3D12Graphi
 
 	// tranmsition from copy buffer to vertex buffer
 	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(indexBuffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER));
+	
+	// create index buffer view
+	indexBufferView.BufferLocation = indexBuffer->GetGPUVirtualAddress();
+	indexBufferView.Format = DXGI_FORMAT_R32_UINT;
+	indexBufferView.SizeInBytes = sizeIndexBuffer;
 }

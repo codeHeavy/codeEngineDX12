@@ -3,6 +3,7 @@
 #include "Vertex.h"
 #include "ConstantBuffer.h"
 #include "Mesh.h"
+#include "GameObject.h"
 
 #ifndef BUFFERCOUNT
 #define BUFFERCOUNT 3
@@ -101,13 +102,13 @@ public:
 	XMFLOAT4 camTarget;
 	XMFLOAT4 camUp;
 
-	XMFLOAT4X4 cube1WorldMat;
+	/*XMFLOAT4X4 cube1WorldMat;
 	XMFLOAT4X4 cube1RotMat;
 	XMFLOAT4 cube1Pos;
 
 	XMFLOAT4X4 cube2WorldMat;
 	XMFLOAT4X4 cube2RotMat;
-	XMFLOAT4 cube2Pos;
+	XMFLOAT4 cube2Pos;*/
 
 	int numCubeIndices;
 
@@ -119,5 +120,7 @@ public:
 	ID3D12Resource* textureBufferUploadHeap;
 
 	Mesh* mesh;
+	GameObject* cube1;
+	GameObject* cube2;
 };
 

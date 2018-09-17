@@ -7,6 +7,8 @@ class Mesh
 private:
 	ID3D12Resource* vertexBuffer;
 	ID3D12Resource* indexBuffer;
+	D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
+	D3D12_INDEX_BUFFER_VIEW indexBufferView;
 	int numVerts;
 	int numIndices;
 	int sizeVertBuffer;
@@ -24,4 +26,6 @@ public:
 	int GetNumIndices();
 	int GetVertSize();
 	int GetIndexSize();
+	D3D12_VERTEX_BUFFER_VIEW GetvBufferView();
+	D3D12_INDEX_BUFFER_VIEW GetiBufferView();
 };

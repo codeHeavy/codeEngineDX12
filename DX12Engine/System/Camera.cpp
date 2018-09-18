@@ -68,7 +68,9 @@ void Camera::Update()
 	XMVECTOR cPos = XMLoadFloat3(&position);
 	XMVECTOR cTarg = XMLoadFloat3(&direction);
 	XMVECTOR cUp = XMLoadFloat3(&up);
-	XMMATRIX tmpMat = XMMatrixLookAtLH(cPos, cTarg, cUp);
+	XMVECTOR rotVector = DirectX::XMQuaternionRotationRollPitchYaw(rotationY, rotationX, 0);		// rotX is rotation along Y-axis
+	XMVECTOR r = DirectX::XMVector3Rotate(DirectX::XMLoadFloat3(&direction), rotVector);		// May cause error - may need pointer
+	XMMATRIX tmpMat = XMMatrixLookAtLH(cPos, r, cUp);
 	XMStoreFloat4x4(&viewMatrix, tmpMat);
 }
 

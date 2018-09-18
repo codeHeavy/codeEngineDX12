@@ -4,6 +4,7 @@
 #include "ConstantBuffer.h"
 #include "Mesh.h"
 #include "GameObject.h"
+#include "Camera.h"
 
 #ifndef BUFFERCOUNT
 #define BUFFERCOUNT 3
@@ -95,12 +96,12 @@ public:
 	ConstantBuffer constantBufferPerObject;
 	UINT8* constantBufferGPUAddress[BUFFERCOUNT];				// pointer to memory location
 
-	XMFLOAT4X4 camProjMat;
-	XMFLOAT4X4 camViewMat;
+	//XMFLOAT4X4 camProjMat;
+	//XMFLOAT4X4 camViewMat;
 
-	XMFLOAT4 camPos;
-	XMFLOAT4 camTarget;
-	XMFLOAT4 camUp;
+	//XMFLOAT4 camPos;
+	//XMFLOAT4 camTarget;
+	//XMFLOAT4 camUp;
 
 	/*XMFLOAT4X4 cube1WorldMat;
 	XMFLOAT4X4 cube1RotMat;
@@ -119,6 +120,7 @@ public:
 	ID3D12DescriptorHeap* mainDescriptorHeap;
 	ID3D12Resource* textureBufferUploadHeap;
 
+	Camera* camera;
 	Mesh* mesh;
 	GameObject* cube1;
 	GameObject* cube2;

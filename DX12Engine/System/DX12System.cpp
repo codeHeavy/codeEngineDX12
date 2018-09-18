@@ -652,21 +652,24 @@ bool DX12System::SetupResources()
 //----------------------------------------------------------------------
 void DX12System::BuildViewProjMatrix()
 {
+	camera = new Camera();
+	camera->Update();
+	camera->UpdateProjectionMatrix(width, height);
 	// build projection and view matrix
-	XMMATRIX tmpMat = XMMatrixPerspectiveFovLH(45.0f*(3.14f / 180.0f), (float)width / (float)height, 0.1f, 1000.0f);
-	XMStoreFloat4x4(&camProjMat,tmpMat);
+	//XMMATRIX tmpMat = XMMatrixPerspectiveFovLH(45.0f*(3.14f / 180.0f), (float)width / (float)height, 0.1f, 1000.0f);
+	//XMStoreFloat4x4(&camProjMat,tmpMat);
 
 	// set starting camera state
-	camPos = XMFLOAT4(0.0f, 2.0f, -4.0f, 0.0f);
-	camTarget = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
-	camUp = XMFLOAT4(0.0f, 1.0f, 0.0f, 0.0f);
+	//camPos = XMFLOAT4(0.0f, 2.0f, -4.0f, 0.0f);
+	//camTarget = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
+	//camUp = XMFLOAT4(0.0f, 1.0f, 0.0f, 0.0f);
 
-	// build view matrix
-	XMVECTOR cPos = XMLoadFloat4(&camPos);
-	XMVECTOR cTarg = XMLoadFloat4(&camTarget);
-	XMVECTOR cUp = XMLoadFloat4(&camUp);
-	tmpMat = XMMatrixLookAtLH(cPos, cTarg, cUp);
-	XMStoreFloat4x4(&camViewMat, tmpMat);
+	//// build view matrix
+	//XMVECTOR cPos = XMLoadFloat4(&camPos);
+	//XMVECTOR cTarg = XMLoadFloat4(&camTarget);
+	//XMVECTOR cUp = XMLoadFloat4(&camUp);
+	//tmpMat = XMMatrixLookAtLH(cPos, cTarg, cUp);
+	//XMStoreFloat4x4(&camViewMat, tmpMat);
 
 	// first cube
 	cube1 = new GameObject(mesh);
@@ -716,8 +719,8 @@ void DX12System::Update()
 
 	//// update constant buffer for cube1
 	//// create the wvp matrix and store in constant buffer
-	XMMATRIX viewMat = XMLoadFloat4x4(&camViewMat); // load view matrix
-	XMMATRIX projMat = XMLoadFloat4x4(&camProjMat); // load projection matrix
+	XMMATRIX viewMat = XMLoadFloat4x4(&camera->GetViewMatrix()); // load view matrix
+	XMMATRIX projMat = XMLoadFloat4x4(&camera->GetProjectionMatrix()); // load projection matrix
 	XMMATRIX wvpMat = XMLoadFloat4x4(&cube1->GetWorldMatrix()) * viewMat * projMat; // create wvp matrix
 	XMMATRIX transposed = XMMatrixTranspose(wvpMat); // must transpose wvp matrix for the gpu
 	XMStoreFloat4x4(&constantBufferPerObject.worldViewProjectionMatrix, transposed); // store transposed wvp matrix in constant buffer

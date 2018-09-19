@@ -5,6 +5,7 @@
 #include "Mesh.h"
 #include "GameObject.h"
 #include "Camera.h"
+#include "Lights.h"
 
 #ifndef BUFFERCOUNT
 #define BUFFERCOUNT 3
@@ -77,39 +78,18 @@ public:
 	ID3D12RootSignature* rootSignature;
 	D3D12_VIEWPORT viewport;
 	D3D12_RECT	scissorRect;									// cuttoff rectangle
-	//ID3D12Resource* vertexBuffer;								// vertex buffer
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView;					// struct of vertex data in GPU mem
 	DXGI_SAMPLE_DESC sampleDesc;
 
-	// IndexBuffers
-	//ID3D12Resource* indexBuffer;
 	D3D12_INDEX_BUFFER_VIEW indexBufferView;
 
 	// Depth stencil
 	ID3D12Resource* depthStencilBuffer;
 	ID3D12DescriptorHeap* dsDescriptorHeap;
 
-	// Constant buffers
-	//ID3D12DescriptorHeap* mainDescriptorHeap[BUFFERCOUNT];		// descriptor for constant buffer
-	
 	ID3D12Resource* constantBufferUploadHeap[BUFFERCOUNT];		// mem on GPU for constant buffer
 	ConstantBuffer constantBufferPerObject;
 	UINT8* constantBufferGPUAddress[BUFFERCOUNT];				// pointer to memory location
-
-	//XMFLOAT4X4 camProjMat;
-	//XMFLOAT4X4 camViewMat;
-
-	//XMFLOAT4 camPos;
-	//XMFLOAT4 camTarget;
-	//XMFLOAT4 camUp;
-
-	/*XMFLOAT4X4 cube1WorldMat;
-	XMFLOAT4X4 cube1RotMat;
-	XMFLOAT4 cube1Pos;
-
-	XMFLOAT4X4 cube2WorldMat;
-	XMFLOAT4X4 cube2RotMat;
-	XMFLOAT4 cube2Pos;*/
 
 	int numCubeIndices;
 
@@ -124,5 +104,5 @@ public:
 	Mesh* mesh;
 	GameObject* cube1;
 	GameObject* cube2;
+	PSConstantBuffer PSCBuffer;
 };
-

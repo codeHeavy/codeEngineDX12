@@ -1,6 +1,6 @@
 #pragma once
 #include "../stdafx.h"
-
+#include "Lights.h"
 
 using namespace DirectX;
 
@@ -8,4 +8,9 @@ using namespace DirectX;
 struct ConstantBuffer
 {
 	XMFLOAT4X4 worldViewProjectionMatrix;
+};
+
+struct PSConstantBuffer
+{
+	DirectionalLight light;
 };

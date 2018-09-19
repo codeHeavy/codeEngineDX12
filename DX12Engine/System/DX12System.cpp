@@ -287,7 +287,7 @@ bool DX12System::SetupResources()
 	rootCBVDescriptor.ShaderRegister = 0;
 
 	// create root parameter
-	D3D12_ROOT_PARAMETER rootParameters[2];
+	D3D12_ROOT_PARAMETER rootParameters[3];
 	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParameters[0].Descriptor = rootCBVDescriptor;
 	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
@@ -295,6 +295,10 @@ bool DX12System::SetupResources()
 	rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 	rootParameters[1].DescriptorTable = descriptorTable;
 	rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+	rootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameters[2].Descriptor = rootCBVDescriptor;
+	rootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
 	// Create static sampler
 	D3D12_STATIC_SAMPLER_DESC sampler = {};
@@ -372,7 +376,8 @@ bool DX12System::SetupResources()
 	D3D12_INPUT_ELEMENT_DESC inputLayout[] =
 	{
 		{"POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0},
-		{ "TEXCOORD" , 0, DXGI_FORMAT_R32G32_FLOAT,0,12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0}
+		{ "TEXCOORD" , 0, DXGI_FORMAT_R32G32_FLOAT,0,12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0},
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT,0,20,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 }
 	};
 
 	D3D12_INPUT_LAYOUT_DESC inputLayoutDesc = {};
@@ -400,49 +405,7 @@ bool DX12System::SetupResources()
 	{
 		return false;
 	}
-	// Create vertex buffer
 
-	// Triangle vertices
-	Vertex vertexList[] = {
-		// front face
-		{ -0.5f,  0.5f, -0.5f, 0.0f, 0.0f },
-	{ 0.5f, -0.5f, -0.5f, 1.0f, 1.0f },
-	{ -0.5f, -0.5f, -0.5f, 0.0f, 1.0f },
-	{ 0.5f,  0.5f, -0.5f, 1.0f, 0.0f },
-
-	// right side face
-	{ 0.5f, -0.5f, -0.5f, 0.0f, 1.0f },
-	{ 0.5f,  0.5f,  0.5f, 1.0f, 0.0f },
-	{ 0.5f, -0.5f,  0.5f, 1.0f, 1.0f },
-	{ 0.5f,  0.5f, -0.5f, 0.0f, 0.0f },
-
-	// left side face
-	{ -0.5f,  0.5f,  0.5f, 0.0f, 0.0f },
-	{ -0.5f, -0.5f, -0.5f, 1.0f, 1.0f },
-	{ -0.5f, -0.5f,  0.5f, 0.0f, 1.0f },
-	{ -0.5f,  0.5f, -0.5f, 1.0f, 0.0f },
-
-	// back face
-	{ 0.5f,  0.5f,  0.5f, 0.0f, 0.0f },
-	{ -0.5f, -0.5f,  0.5f, 1.0f, 1.0f },
-	{ 0.5f, -0.5f,  0.5f, 0.0f, 1.0f },
-	{ -0.5f,  0.5f,  0.5f, 1.0f, 0.0f },
-
-	// top face
-	{ -0.5f,  0.5f, -0.5f, 0.0f, 1.0f },
-	{ 0.5f,  0.5f,  0.5f, 1.0f, 0.0f },
-	{ 0.5f,  0.5f, -0.5f, 1.0f, 1.0f },
-	{ -0.5f,  0.5f,  0.5f, 0.0f, 0.0f },
-
-	// bottom face
-	{ 0.5f, -0.5f,  0.5f, 0.0f, 0.0f },
-	{ -0.5f, -0.5f, -0.5f, 1.0f, 1.0f },
-	{ 0.5f, -0.5f, -0.5f, 0.0f, 1.0f },
-	{ -0.5f, -0.5f,  0.5f, 1.0f, 0.0f },
-	};
-
-	int vertexBufferSize = sizeof(vertexList);
-	int numVerts = sizeof(vertexList) / sizeof(vertexList[0]);
 	// Load texture from file
 	D3D12_RESOURCE_DESC textureDesc;
 	int imageBytesPerRaw;
@@ -510,38 +473,6 @@ bool DX12System::SetupResources()
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = 1;
 	device->CreateShaderResourceView(textureBuffer, &srvDesc, mainDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
-	
-	
-
-	// Create Index Buffer
-
-	int indexBufferList[] = {
-		// ffront face
-		0, 1, 2, // first triangle
-		0, 3, 1, // second triangle
-
-		// left face
-		4, 5, 6, // first triangle
-		4, 7, 5, // second triangle
-
-		// right face
-		8, 9, 10, // first triangle
-		8, 11, 9, // second triangle
-
-		// back face
-		12, 13, 14, // first triangle
-		12, 15, 13, // second triangle
-		
-		// top face
-		16, 17, 18, // first triangle
-		16, 19, 17, // second triangle
-
-		// bottom face
-		20, 21, 22, // first triangle
-		20, 23, 21, // second triangle
-	};
-	//int indexBufferSize = sizeof(indexBufferList);
-	numCubeIndices = sizeof(indexBufferList) / sizeof(indexBufferList[0]);
 
 	mesh = new Mesh("Assets/Models/cone.obj", device, commandList);
 	// Create depth stencil
@@ -578,6 +509,11 @@ bool DX12System::SetupResources()
 	dsDescriptorHeap->SetName(L"Depth/Stencil Resource Heap");
 	device->CreateDepthStencilView(depthStencilBuffer, &depthStencilDesc, dsDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 
+	// Set lights
+	PSCBuffer.light.AmbientColor = XMFLOAT4(0.1, 0.1, 0.1, 1.0);
+	PSCBuffer.light.DiffuseColor = XMFLOAT4(0, 0, 1, 1);
+	PSCBuffer.light.Direction = XMFLOAT3(1, -1, 0);
+
 	// create constant buffer resource heap
 	// Resource heaps must be multiples of 64KB of size
 
@@ -600,6 +536,7 @@ bool DX12System::SetupResources()
 		// constant buffers must be 256 bytes aligned
 		memcpy(constantBufferGPUAddress[i], &constantBufferPerObject, sizeof(constantBufferPerObject));
 		memcpy(constantBufferGPUAddress[i] + ConstantBufferPerObjectAlignedSize, &constantBufferPerObject, sizeof(constantBufferPerObject));
+		memcpy(constantBufferGPUAddress[i] + ConstantBufferPerObjectAlignedSize * 2, &PSCBuffer, sizeof(PSCBuffer));
 	}
 
 	// Execute command list to upload initial assets
@@ -617,16 +554,6 @@ bool DX12System::SetupResources()
 
 	// clear memory of image
 	delete imageData;
-
-	//// create a vertex buffer view for the triangle
-	//vertexBufferView.BufferLocation = mesh->GetVertexBuffer()->GetGPUVirtualAddress();
-	//vertexBufferView.StrideInBytes = sizeof(Vertex);
-	//vertexBufferView.SizeInBytes = mesh->GetVertSize();
-
-	//// create index buffer view
-	//indexBufferView.BufferLocation = mesh->GetIndexBuffer()->GetGPUVirtualAddress();
-	//indexBufferView.Format = DXGI_FORMAT_R32_UINT;
-	//indexBufferView.SizeInBytes = mesh->GetIndexSize();
 
 	// Viewport
 	viewport.TopLeftX = 0;
@@ -652,6 +579,7 @@ bool DX12System::SetupResources()
 //----------------------------------------------------------------------
 void DX12System::BuildViewProjMatrix()
 {
+
 	camera = new Camera();
 	camera->Update();
 	camera->UpdateProjectionMatrix(width, height);
@@ -764,6 +692,9 @@ void DX12System::Draw()
 	commandList->IASetVertexBuffers(0, 1, &cube1->GetMesh()->GetvBufferView());
 	commandList->IASetIndexBuffer(&cube1->GetMesh()->GetiBufferView());
 	
+	// Set light
+	commandList->SetGraphicsRootConstantBufferView(2, constantBufferUploadHeap[frameIndex]->GetGPUVirtualAddress() + ConstantBufferPerObjectAlignedSize * 2);
+
 	// first cube
 	// set cube1's constant buffer
 	commandList->SetGraphicsRootConstantBufferView(0, constantBufferUploadHeap[frameIndex]->GetGPUVirtualAddress());

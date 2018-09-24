@@ -155,11 +155,14 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="System\Camera.h" />
     <ClInclude Include="System\ConstantBuffer.h" />
+    <ClInclude Include="System\DefferedRenderer.h" />
+    <ClInclude Include="System\DirectxHelper.h" />
     <ClInclude Include="System\DX12System.h" />
     <ClInclude Include="System\GameObject.h" />
     <ClInclude Include="System\ImageLoader.h" />
     <ClInclude Include="System\Lights.h" />
     <ClInclude Include="System\Mesh.h" />
+    <ClInclude Include="System\ShaderManager.h" />
     <ClInclude Include="System\Vertex.h" />
   </ItemGroup>
   <ItemGroup>
@@ -170,9 +173,12 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdafx.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="System\Camera.cpp" />
+    <ClCompile Include="System\DefferedRenderer.cpp" />
+    <ClCompile Include="System\DirectxHelper.cpp" />
     <ClCompile Include="System\DX12System.cpp" />
     <ClCompile Include="System\GameObject.cpp" />
     <ClCompile Include="System\Mesh.cpp" />
+    <ClCompile Include="System\ShaderManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\PixelShader.hlsl">

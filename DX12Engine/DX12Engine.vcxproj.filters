@@ -48,6 +48,15 @@
     <ClInclude Include="System\Lights.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="System\DefferedRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="System\DirectxHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="System\ShaderManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -66,6 +75,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="System\Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="System\DefferedRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="System\DirectxHelper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="System\ShaderManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

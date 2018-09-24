@@ -2,7 +2,7 @@
 // code obtained from https://www.braynzarsoft.net/viewtutorial/q16390-directx-12-textures-from-file
 //----------------------------------------------------------------------------------------------------
 #pragma once
-#include <wincodec.h>
+//#include <wincodec.h>
 #include "../stdafx.h"
 // get the dxgi format equivilent of a wic format
 DXGI_FORMAT GetDXGIFormatFromWICFormat(WICPixelFormatGUID& wicFormatGUID)

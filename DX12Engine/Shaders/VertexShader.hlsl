@@ -12,6 +12,7 @@ struct VS_OUTPUT
 	float4 pos : SV_POSITION;
 	float2 texCoord : TEXCOORD;
 	float3 normal : NORMAL;
+	float3 worldPos : POSITION;
 };
 
 cbuffer ConstantBuffer : register(b0)

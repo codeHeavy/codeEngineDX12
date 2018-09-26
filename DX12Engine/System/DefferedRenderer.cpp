@@ -1,7 +1,8 @@
 #include "DefferedRenderer.h"
 
 
-DefferedRenderer::DefferedRenderer()
+DefferedRenderer::DefferedRenderer(ID3D12Device1* _device, UINT width, UINT height):
+	device(_device), viewWidth(width), viewHeight(height)
 {
 }
 
@@ -106,8 +107,8 @@ void DefferedRenderer::CreatePSO()
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC descPipelineState;
 	ZeroMemory(&descPipelineState, sizeof(descPipelineState));
-	descPipelineState.VS = ShaderManager::LoadShader(L"VertexShader.cso");
-	descPipelineState.PS = ShaderManager::LoadShader(L"PixelShader.cso");
+	descPipelineState.VS = ShaderManager::CompileVSShader(L"VertexShader.cso");
+	descPipelineState.PS = ShaderManager::CompilePSShader(L"PixelShader.cso");
 	descPipelineState.InputLayout.pInputElementDescs = inputLayout;
 	descPipelineState.InputLayout.NumElements = _countof(inputLayout);
 	descPipelineState.pRootSignature = rootSignature;
@@ -130,8 +131,8 @@ void DefferedRenderer::CreateLightPassPSO()
 {
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC descPipelineState;
 	ZeroMemory(&descPipelineState, sizeof(descPipelineState));
-	descPipelineState.VS = ShaderManager::LoadShader(L"VertexShader.cso");
-	descPipelineState.PS = ShaderManager::LoadShader(L"PixelShader.cso");
+	descPipelineState.VS = ShaderManager::CompileVSShader(L"VertexShader.cso");
+	descPipelineState.PS = ShaderManager::CompilePSShader(L"PixelShader.cso");
 	descPipelineState.InputLayout.pInputElementDescs = nullptr;
 	descPipelineState.InputLayout.NumElements = 0;
 	descPipelineState.pRootSignature = rootSignature;

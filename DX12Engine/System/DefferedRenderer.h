@@ -43,7 +43,7 @@ private:
 	DXGI_FORMAT mRtvFormat[3] = { DXGI_FORMAT_R11G11B10_FLOAT, DXGI_FORMAT_R8G8B8A8_SNORM, DXGI_FORMAT_R8G8B8A8_UNORM };
 public:
 	void Init();
-	DefferedRenderer();
+	DefferedRenderer(ID3D12Device1* _device, UINT width, UINT height);
 	~DefferedRenderer();
 };
 

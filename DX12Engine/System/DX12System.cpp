@@ -266,6 +266,8 @@ bool DX12System::InitD3D()
 //----------------------------------------------------------------------
 bool DX12System::SetupResources()
 {
+	deferredRenderer = new DefferedRenderer(device, width, height);
+	deferredRenderer->Init();
 	HRESULT hr;
 
 	// descriptor range table = range of descriptors inside the descriptor heap

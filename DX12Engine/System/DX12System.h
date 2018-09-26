@@ -108,4 +108,6 @@ public:
 	GameObject* cube1;
 	GameObject* cube2;
 	PSConstantBuffer PSCBuffer;
+	
+	DefferedRenderer* deferredRenderer;
 };

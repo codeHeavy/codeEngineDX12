@@ -681,6 +681,16 @@ void DX12System::Draw()
 {
 	// clear depth stencil buffer
 	commandList->ClearDepthStencilView(dsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	commandList->RSSetViewports(1, &viewport);
+	commandList->RSSetScissorRects(1, &scissorRect);
+	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	
+	//--------------------Deferred Rendering-----------------------
+
+
+	//--------------------Deferred Rendering-----------------------
+
+	// --------------- Forward Rendering---------------------------
 	// draw triangles
 	commandList->SetGraphicsRootSignature(rootSignature);
 	// set descriptor heap
@@ -688,9 +698,6 @@ void DX12System::Draw()
 	commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 	commandList->SetGraphicsRootDescriptorTable(1, mainDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
 	
-	commandList->RSSetViewports(1, &viewport);
-	commandList->RSSetScissorRects(1, &scissorRect);
-	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	commandList->IASetVertexBuffers(0, 1, &cube1->GetMesh()->GetvBufferView());
 	commandList->IASetIndexBuffer(&cube1->GetMesh()->GetiBufferView());
 	
@@ -712,6 +719,7 @@ void DX12System::Draw()
 
 	// draw second cube
 	commandList->DrawIndexedInstanced(cube2->GetMesh()->GetNumIndices(), 1, 0, 0, 0);
+	// --------------- Forward Rendering---------------------------
 }
 
 //----------------------------------------------------------------------

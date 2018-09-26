@@ -4,6 +4,8 @@
 #include "DirectxHelper.h"
 #include "ConstantBuffer.h"
 #include "ShaderManager.h"
+#include "GameObject.h"
+#include "Camera.h"
 
 class DefferedRenderer
 {
@@ -38,6 +40,11 @@ private:
 	void CreateLightPassPSO();
 	void CreateRTV();
 	void CreateDSV();
+
+	void ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool bSetPSO);
+	void ApplyLightingPSO(ID3D12GraphicsCommandList * command, bool bSetPSO);
+
+	void Render(ID3D12GraphicsCommandList * command, GameObject* gameObj);
 
 	DXGI_FORMAT mDsvFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	DXGI_FORMAT mRtvFormat[3] = { DXGI_FORMAT_R11G11B10_FLOAT, DXGI_FORMAT_R8G8B8A8_SNORM, DXGI_FORMAT_R8G8B8A8_UNORM };

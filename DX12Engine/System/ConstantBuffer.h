@@ -8,6 +8,7 @@ using namespace DirectX;
 struct ConstantBuffer
 {
 	XMFLOAT4X4 worldViewProjectionMatrix;
+	XMFLOAT4X4 worldMatrix;
 };
 
 struct PSConstantBuffer

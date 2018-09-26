@@ -663,8 +663,8 @@ void DX12System::UpdatePipeline()
 
 	// Draw call
 	Draw();
-	//commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
-	//commandList->ClearRenderTargetView(rtvHandle, clearColor, FALSE, nullptr);
+	commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+	commandList->ClearRenderTargetView(rtvHandle, clearColor, FALSE, nullptr);
 	// transition render target from render target state to curtrrent state
 	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTargets[frameIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
 	hr = commandList->Close();	// resets to recording state
@@ -688,7 +688,7 @@ void DX12System::Draw()
 	//--------------------Deferred Rendering-----------------------
 
 	deferredRenderer->ApplyGBufferPSO(commandList,true);
-	deferredRenderer->Render(commandList, cube1);
+	deferredRenderer->Render(commandList, cube1, camera);
 	
 	//--------------------Deferred Rendering-----------------------
 
@@ -712,7 +712,7 @@ void DX12System::Draw()
 
 	//// draw first cube
 	//commandList->DrawIndexedInstanced(cube1->GetMesh()->GetNumIndices(), 1, 0, 0, 0);
-	
+	//
 	//// second cube
 	//// set cube2's constant buffer. You can see we are adding the size of ConstantBufferPerObject to the constant buffer
 	//// resource heaps address. This is because cube1's constant buffer is stored at the beginning of the resource heap, while

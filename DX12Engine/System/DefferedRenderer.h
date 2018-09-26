@@ -53,6 +53,6 @@ public:
 	void Init();
 	void ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool bSetPSO);
 	void ApplyLightingPSO(ID3D12GraphicsCommandList * command, bool bSetPSO);
-	void Render(ID3D12GraphicsCommandList * command, GameObject* gameObj);
+	void Render(ID3D12GraphicsCommandList * command, GameObject* gameObj, Camera* camera);
 };
 

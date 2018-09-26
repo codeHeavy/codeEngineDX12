@@ -66,8 +66,7 @@ void DefferedRenderer::CreateViews()
 	CD3DX12_RANGE readRange(0, 0);    // We do not intend to read from this resource on the CPU. (End is less than or equal to begin)
 	viewCB->Map(0, &readRange, reinterpret_cast<void**>(&constantBufferGPUAddress));
 
-	// constant buffers must be 256 bytes aligned
-	memcpy(constantBufferGPUAddress, &cbPerObj, sizeof(cbPerObj));
+
 }
 
 void DefferedRenderer::CreateRootSignature()
@@ -271,7 +270,7 @@ void DefferedRenderer::CreateDSV()
 
 void DefferedRenderer::ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool bSetPSO)
 {
-	ID3D12DescriptorHeap* ppHeaps[1] = { cbvsrvHeap.pDH.Get() };
+	ID3D12DescriptorHeap* ppHeaps[] = { cbvsrvHeap.pDH.Get() };
 	if (bSetPSO)
 	{
 		command->SetPipelineState(pipelineStateObject);
@@ -307,12 +306,21 @@ void DefferedRenderer::ApplyLightingPSO(ID3D12GraphicsCommandList * command, boo
 
 }
 
-void DefferedRenderer::Render(ID3D12GraphicsCommandList * commandList, GameObject * gameObj)
+void DefferedRenderer::Render(ID3D12GraphicsCommandList * commandList, GameObject * gameObj, Camera* camera)
 {
+	XMMATRIX viewMat = XMLoadFloat4x4(&camera->GetViewMatrix());					// load view matrix
+	XMMATRIX projMat = XMLoadFloat4x4(&camera->GetProjectionMatrix());				// load projection matrix
+	XMMATRIX wvpMat = XMLoadFloat4x4(&gameObj->GetWorldMatrix()) * viewMat * projMat; // create wvp matrix
+	XMStoreFloat4x4(&cbPerObj.worldViewProjectionMatrix, wvpMat);	// store transposed wvp matrix in constant buffer
+	XMStoreFloat4x4(&cbPerObj.worldMatrix, XMLoadFloat4x4(&gameObj->GetWorldMatrix()));	// store transposed world matrix in constant buffer
+
+	// constant buffers must be 256 bytes aligned
+	memcpy(constantBufferGPUAddress, &cbPerObj, sizeof(ConstantBuffer));
+
 	commandList->IASetVertexBuffers(0, 1, &gameObj->GetMesh()->GetvBufferView());
 	commandList->IASetIndexBuffer(&gameObj->GetMesh()->GetiBufferView());
 	
-	commandList->SetGraphicsRootConstantBufferView(0, viewCB->GetGPUVirtualAddress());
+	//commandList->SetGraphicsRootConstantBufferView(0, viewCB->GetGPUVirtualAddress());
 
 	// draw first cube
 	commandList->DrawIndexedInstanced(gameObj->GetMesh()->GetNumIndices(), 1, 0, 0, 0);

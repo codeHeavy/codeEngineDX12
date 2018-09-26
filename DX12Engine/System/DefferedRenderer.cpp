@@ -46,17 +46,28 @@ void DefferedRenderer::CreateConstantBuffers()
 void DefferedRenderer::CreateViews()
 {
 	cbvsrvHeap.Create(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 10, true);
-	
+	cbvsrvHeap.Create(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 10, true);
+
 	//Camera CBV
 	D3D12_CONSTANT_BUFFER_VIEW_DESC	descBuffer;
 	descBuffer.BufferLocation = viewCB->GetGPUVirtualAddress();
 	descBuffer.SizeInBytes = (sizeof(ConstantBuffer) + 255) & ~255;	//Constant buffer must be larger than 256 bytes
 
 	device->CreateConstantBufferView(&descBuffer, cbvsrvHeap.hCPU(0));
+	//descBuffer.SizeInBytes = viewCB->GetGPUVirtualAddress() + ((sizeof(ConstantBuffer) + 255) & ~255);	//Constant buffer must be larger than 256 bytes
+	//device->CreateConstantBufferView(&descBuffer, cbvsrvHeap.hCPU(0));
+	
 	//Light CBV
 	descBuffer.BufferLocation = lightCB->GetGPUVirtualAddress();
 	descBuffer.SizeInBytes = (sizeof(ConstantBuffer) + 255) & ~255;
 	device->CreateConstantBufferView(&descBuffer, cbvsrvHeap.hCPU(1));
+
+	//------------------------
+	CD3DX12_RANGE readRange(0, 0);    // We do not intend to read from this resource on the CPU. (End is less than or equal to begin)
+	viewCB->Map(0, &readRange, reinterpret_cast<void**>(&constantBufferGPUAddress));
+
+	// constant buffers must be 256 bytes aligned
+	memcpy(constantBufferGPUAddress, &cbPerObj, sizeof(cbPerObj));
 }
 
 void DefferedRenderer::CreateRootSignature()
@@ -104,13 +115,16 @@ void DefferedRenderer::CreatePSO()
 	{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT,0,20,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 }
 	};
 
+	D3D12_INPUT_LAYOUT_DESC inputLayoutDesc = {};
+
+	inputLayoutDesc.NumElements = sizeof(inputLayout) / sizeof(D3D12_INPUT_ELEMENT_DESC);
+	inputLayoutDesc.pInputElementDescs = inputLayout;
+
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC descPipelineState;
 	ZeroMemory(&descPipelineState, sizeof(descPipelineState));
-	descPipelineState.VS = ShaderManager::CompileVSShader(L"VertexShader.cso");
-	descPipelineState.PS = ShaderManager::CompilePSShader(L"DeferredPixelShader.cso");
-
-	descPipelineState.InputLayout.pInputElementDescs = inputLayout;
-	descPipelineState.InputLayout.NumElements = _countof(inputLayout);
+	descPipelineState.VS = ShaderManager::CompileVSShader(L"VertexShader.hlsl");
+	descPipelineState.PS = ShaderManager::CompilePSShader(L"DeferredPixelShader.hlsl");
+	descPipelineState.InputLayout = inputLayoutDesc;
 	descPipelineState.pRootSignature = rootSignature;
 	descPipelineState.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 	descPipelineState.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
@@ -131,8 +145,8 @@ void DefferedRenderer::CreateLightPassPSO()
 {
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC descPipelineState;
 	ZeroMemory(&descPipelineState, sizeof(descPipelineState));
-	descPipelineState.VS = ShaderManager::CompileVSShader(L"VertexShader.cso");
-	descPipelineState.PS = ShaderManager::CompilePSShader(L"PixelShader.cso");
+	descPipelineState.VS = ShaderManager::CompileVSShader(L"VertexShader.hlsl");
+	descPipelineState.PS = ShaderManager::CompilePSShader(L"PixelShader.hlsl");
 	descPipelineState.InputLayout.pInputElementDescs = nullptr;
 	descPipelineState.InputLayout.NumElements = 0;
 	descPipelineState.pRootSignature = rootSignature;

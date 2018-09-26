@@ -608,14 +608,15 @@ void DX12System::Update()
 	XMMATRIX projMat = XMLoadFloat4x4(&camera->GetProjectionMatrix());				// load projection matrix
 	XMMATRIX wvpMat = XMLoadFloat4x4(&cube1->GetWorldMatrix()) * viewMat * projMat; // create wvp matrix
 	XMStoreFloat4x4(&constantBufferPerObject.worldViewProjectionMatrix, wvpMat);	// store transposed wvp matrix in constant buffer
-
+	XMStoreFloat4x4(&constantBufferPerObject.worldMatrix, XMLoadFloat4x4(&cube1->GetWorldMatrix()));	// store transposed world matrix in constant buffer
+	
 	// copy our ConstantBuffer instance to the mapped constant buffer resource
 	memcpy(constantBufferGPUAddress[frameIndex], &constantBufferPerObject, sizeof(constantBufferPerObject));
 
-	wvpMat = XMLoadFloat4x4(&cube2->GetWorldMatrix()) * viewMat * projMat;			// create wvp matrix
-	XMStoreFloat4x4(&constantBufferPerObject.worldViewProjectionMatrix, wvpMat);// store transposed wvp matrix in constant buffer
-	// copy our ConstantBuffer instance to the mapped constant buffer resource
-	memcpy(constantBufferGPUAddress[frameIndex] + ConstantBufferPerObjectAlignedSize, &constantBufferPerObject, sizeof(constantBufferPerObject));
+	//wvpMat = XMLoadFloat4x4(&cube2->GetWorldMatrix()) * viewMat * projMat;			// create wvp matrix
+	//XMStoreFloat4x4(&constantBufferPerObject.worldViewProjectionMatrix, wvpMat);// store transposed wvp matrix in constant buffer
+	//// copy our ConstantBuffer instance to the mapped constant buffer resource
+	//memcpy(constantBufferGPUAddress[frameIndex] + ConstantBufferPerObjectAlignedSize, &constantBufferPerObject, sizeof(constantBufferPerObject));
 }
 
 //----------------------------------------------------------------------
@@ -660,11 +661,10 @@ void DX12System::UpdatePipeline()
 	const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
 	commandList->ClearRenderTargetView(rtvHandle, clearColor, FALSE, nullptr);
 
-	
-
 	// Draw call
 	Draw();
-
+	//commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+	//commandList->ClearRenderTargetView(rtvHandle, clearColor, FALSE, nullptr);
 	// transition render target from render target state to curtrrent state
 	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTargets[frameIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
 	hr = commandList->Close();	// resets to recording state
@@ -687,38 +687,40 @@ void DX12System::Draw()
 	
 	//--------------------Deferred Rendering-----------------------
 
-
+	deferredRenderer->ApplyGBufferPSO(commandList,true);
+	deferredRenderer->Render(commandList, cube1);
+	
 	//--------------------Deferred Rendering-----------------------
 
 	// --------------- Forward Rendering---------------------------
-	// draw triangles
-	commandList->SetGraphicsRootSignature(rootSignature);
-	// set descriptor heap
-	ID3D12DescriptorHeap* descriptorHeaps[] = { mainDescriptorHeap };
-	commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
-	commandList->SetGraphicsRootDescriptorTable(1, mainDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
-	
-	commandList->IASetVertexBuffers(0, 1, &cube1->GetMesh()->GetvBufferView());
-	commandList->IASetIndexBuffer(&cube1->GetMesh()->GetiBufferView());
-	
-	// Set light
-	commandList->SetGraphicsRootConstantBufferView(2, constantBufferUploadHeap[frameIndex]->GetGPUVirtualAddress() + ConstantBufferPerObjectAlignedSize * 2);
+	//// draw triangles
+	//commandList->SetGraphicsRootSignature(rootSignature);
+	//// set descriptor heap
+	//ID3D12DescriptorHeap* descriptorHeaps[] = { mainDescriptorHeap };
+	//commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+	//commandList->SetGraphicsRootDescriptorTable(1, mainDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+	//
+	//commandList->IASetVertexBuffers(0, 1, &cube1->GetMesh()->GetvBufferView());
+	//commandList->IASetIndexBuffer(&cube1->GetMesh()->GetiBufferView());
+	//
+	//// Set light
+	//commandList->SetGraphicsRootConstantBufferView(2, constantBufferUploadHeap[frameIndex]->GetGPUVirtualAddress() + ConstantBufferPerObjectAlignedSize * 2);
 
-	// first cube
-	// set cube1's constant buffer
-	commandList->SetGraphicsRootConstantBufferView(0, constantBufferUploadHeap[frameIndex]->GetGPUVirtualAddress());
+	//// first cube
+	//// set cube1's constant buffer
+	//commandList->SetGraphicsRootConstantBufferView(0, constantBufferUploadHeap[frameIndex]->GetGPUVirtualAddress());
 
-	// draw first cube
-	commandList->DrawIndexedInstanced(cube1->GetMesh()->GetNumIndices(), 1, 0, 0, 0);
+	//// draw first cube
+	//commandList->DrawIndexedInstanced(cube1->GetMesh()->GetNumIndices(), 1, 0, 0, 0);
 	
-	// second cube
-	// set cube2's constant buffer. You can see we are adding the size of ConstantBufferPerObject to the constant buffer
-	// resource heaps address. This is because cube1's constant buffer is stored at the beginning of the resource heap, while
-	// cube2's constant buffer data is stored after (256 bits from the start of the heap).
-	commandList->SetGraphicsRootConstantBufferView(0, constantBufferUploadHeap[frameIndex]->GetGPUVirtualAddress() + ConstantBufferPerObjectAlignedSize);
+	//// second cube
+	//// set cube2's constant buffer. You can see we are adding the size of ConstantBufferPerObject to the constant buffer
+	//// resource heaps address. This is because cube1's constant buffer is stored at the beginning of the resource heap, while
+	//// cube2's constant buffer data is stored after (256 bits from the start of the heap).
+	//commandList->SetGraphicsRootConstantBufferView(0, constantBufferUploadHeap[frameIndex]->GetGPUVirtualAddress() + ConstantBufferPerObjectAlignedSize);
 
-	// draw second cube
-	commandList->DrawIndexedInstanced(cube2->GetMesh()->GetNumIndices(), 1, 0, 0, 0);
+	//// draw second cube
+	//commandList->DrawIndexedInstanced(cube2->GetMesh()->GetNumIndices(), 1, 0, 0, 0);
 	// --------------- Forward Rendering---------------------------
 }
 

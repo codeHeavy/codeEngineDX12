@@ -41,16 +41,18 @@ private:
 	void CreateRTV();
 	void CreateDSV();
 
-	void ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool bSetPSO);
-	void ApplyLightingPSO(ID3D12GraphicsCommandList * command, bool bSetPSO);
-
-	void Render(ID3D12GraphicsCommandList * command, GameObject* gameObj);
+	UINT8* constantBufferGPUAddress;				// pointer to memory location
+	ConstantBuffer cbPerObj;
 
 	DXGI_FORMAT mDsvFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	DXGI_FORMAT mRtvFormat[3] = { DXGI_FORMAT_R11G11B10_FLOAT, DXGI_FORMAT_R8G8B8A8_SNORM, DXGI_FORMAT_R8G8B8A8_UNORM };
 public:
-	void Init();
 	DefferedRenderer(ID3D12Device1* _device, UINT width, UINT height);
 	~DefferedRenderer();
+
+	void Init();
+	void ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool bSetPSO);
+	void ApplyLightingPSO(ID3D12GraphicsCommandList * command, bool bSetPSO);
+	void Render(ID3D12GraphicsCommandList * command, GameObject* gameObj);
 };
 

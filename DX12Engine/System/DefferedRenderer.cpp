@@ -1,7 +1,8 @@
 #include "DefferedRenderer.h"
 
 
-DefferedRenderer::DefferedRenderer()
+DefferedRenderer::DefferedRenderer(ID3D12Device1* _device, UINT _width, UINT _height):
+	device(_device), viewWidth(_width), viewHeight(_height)
 {
 }
 
@@ -49,9 +50,8 @@ void DefferedRenderer::CreateViews()
 	//Camera CBV
 	D3D12_CONSTANT_BUFFER_VIEW_DESC	descBuffer;
 	descBuffer.BufferLocation = viewCB->GetGPUVirtualAddress();
+	descBuffer.SizeInBytes = (sizeof(ConstantBuffer) + 255) & ~255;	//Constant buffer must be larger than 256 bytes
 
-	//Constant buffer must be larger than 256 bytes
-	descBuffer.SizeInBytes = (sizeof(ConstantBuffer) + 255) & ~255;
 	device->CreateConstantBufferView(&descBuffer, cbvsrvHeap.hCPU(0));
 	//Light CBV
 	descBuffer.BufferLocation = lightCB->GetGPUVirtualAddress();
@@ -107,7 +107,7 @@ void DefferedRenderer::CreatePSO()
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC descPipelineState;
 	ZeroMemory(&descPipelineState, sizeof(descPipelineState));
 	descPipelineState.VS = ShaderManager::LoadShader(L"VertexShader.cso");
-	descPipelineState.PS = ShaderManager::LoadShader(L"PixelShader.cso");
+	descPipelineState.PS = ShaderManager::LoadShader(L"DeferredPixelShader.cso");
 	descPipelineState.InputLayout.pInputElementDescs = inputLayout;
 	descPipelineState.InputLayout.NumElements = _countof(inputLayout);
 	descPipelineState.pRootSignature = rootSignature;
@@ -252,4 +252,53 @@ void DefferedRenderer::CreateDSV()
 
 
 	device->CreateShaderResourceView(depthStencilTexture, &descSRV, cbvsrvHeap.hCPU(5));
+}
+
+void DefferedRenderer::ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool bSetPSO)
+{
+	ID3D12DescriptorHeap* ppHeaps[1] = { cbvsrvHeap.pDH.Get() };
+	if (bSetPSO)
+	{
+		command->SetPipelineState(pipelineStateObject);
+	}
+
+
+	for (int i = 0; i < numRTV; i++)
+		command->ClearRenderTargetView(rtvHeap.hCPU(i), mClearColor, 0, nullptr);
+
+	command->ClearDepthStencilView(dsvHeap.hCPUHeapStart, D3D12_CLEAR_FLAG_DEPTH, mClearDepth, 0xff, 0, nullptr);
+
+	command->OMSetRenderTargets(numRTV, &rtvHeap.hCPUHeapStart, true, &dsvHeap.hCPUHeapStart);
+	command->SetDescriptorHeaps(1, ppHeaps);
+	command->SetGraphicsRootSignature(rootSignature);
+	command->SetGraphicsRootDescriptorTable(0, cbvsrvHeap.hGPU(0));
+	command->SetGraphicsRootDescriptorTable(1, cbvsrvHeap.hGPU(1));
+	command->SetGraphicsRootDescriptorTable(2, cbvsrvHeap.hGPU(2));
+
+}
+
+void DefferedRenderer::ApplyLightingPSO(ID3D12GraphicsCommandList * command, bool bSetPSO)
+{
+
+	/*for (int i = 0; i < numRTV; i++)
+		AddResourceBarrier(command, mRtvTexture[i].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_GENERIC_READ);
+
+	AddResourceBarrier(command, mDsTexture.Get(), D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_GENERIC_READ);
+
+	command->SetPipelineState(mLightPso.Get());
+
+	mQuadRender.Draw(command);*/
+
+
+}
+
+void DefferedRenderer::Render(ID3D12GraphicsCommandList * commandList, GameObject * gameObj)
+{
+	commandList->IASetVertexBuffers(0, 1, &gameObj->GetMesh()->GetvBufferView());
+	commandList->IASetIndexBuffer(&gameObj->GetMesh()->GetiBufferView());
+	
+	commandList->SetGraphicsRootConstantBufferView(0, viewCB->GetGPUVirtualAddress());
+
+	// draw first cube
+	commandList->DrawIndexedInstanced(gameObj->GetMesh()->GetNumIndices(), 1, 0, 0, 0);
 }

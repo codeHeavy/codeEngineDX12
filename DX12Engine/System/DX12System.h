@@ -6,6 +6,7 @@
 #include "GameObject.h"
 #include "Camera.h"
 #include "Lights.h"
+#include "DefferedRenderer.h"
 
 #ifndef BUFFERCOUNT
 #define BUFFERCOUNT 3
@@ -105,4 +106,6 @@ public:
 	GameObject* cube1;
 	GameObject* cube2;
 	PSConstantBuffer PSCBuffer;
+	
+	DefferedRenderer* deferredRenderer;
 };

@@ -46,7 +46,6 @@ void DefferedRenderer::CreateConstantBuffers()
 void DefferedRenderer::CreateViews()
 {
 	cbvsrvHeap.Create(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 10, true);
-	cbvsrvHeap.Create(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 10, true);
 
 	//Camera CBV
 	D3D12_CONSTANT_BUFFER_VIEW_DESC	descBuffer;
@@ -287,7 +286,7 @@ void DefferedRenderer::ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool
 	command->SetGraphicsRootSignature(rootSignature);
 	command->SetGraphicsRootDescriptorTable(0, cbvsrvHeap.hGPU(0));
 	command->SetGraphicsRootDescriptorTable(1, cbvsrvHeap.hGPU(1));
-	command->SetGraphicsRootDescriptorTable(2, cbvsrvHeap.hGPU(2));
+	//command->SetGraphicsRootDescriptorTable(2, cbvsrvHeap.hGPU(2));
 
 }
 

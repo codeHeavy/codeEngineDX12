@@ -42,14 +42,3 @@ D3D12_SHADER_BYTECODE ShaderManager::CompilePSShader(std::wstring shaderFileHLSL
 	pixelShaderBytecode.pShaderBytecode = pixelShader->GetBufferPointer();
 	return pixelShaderBytecode;
 }
-D3D12_SHADER_BYTECODE ShaderManager::LoadShader(std::wstring ShaderCSO)
-{
-	std::wstring root = L"../../x64/Debug/";
-	root.append(ShaderCSO);
-	ID3DBlob* shaderBlob;
-	D3DReadFileToBlob(root.c_str(), &shaderBlob);
-	D3D12_SHADER_BYTECODE shaderBytecode = {};
-	shaderBytecode.BytecodeLength = shaderBlob->GetBufferSize();
-	shaderBytecode.pShaderBytecode = shaderBlob->GetBufferPointer();
-	return shaderBytecode;
-}

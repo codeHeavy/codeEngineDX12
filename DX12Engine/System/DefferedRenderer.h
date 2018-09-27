@@ -26,6 +26,9 @@ private:
 	CDescriptorHeapWrapper rtvHeap;
 	CDescriptorHeapWrapper srvHeap;
 
+	CDescriptorHeapWrapper cbHeap;
+	CDescriptorHeapWrapper pcbHeap;
+
 	ID3D12RootSignature* rootSignature;
 
 	UINT viewWidth;
@@ -43,16 +46,20 @@ private:
 
 	UINT8* constantBufferGPUAddress;				// pointer to memory location
 	ConstantBuffer cbPerObj;
+	ConstantBuffer pCb;
+	int ConstantBufferPerObjectAlignedSize = (sizeof(ConstantBuffer) + 255) & ~255;
 
 	DXGI_FORMAT mDsvFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	DXGI_FORMAT mRtvFormat[3] = { DXGI_FORMAT_R11G11B10_FLOAT, DXGI_FORMAT_R8G8B8A8_SNORM, DXGI_FORMAT_R8G8B8A8_UNORM };
+	GameObject* gameObj;
+	Camera* camera;
 public:
 	DefferedRenderer(ID3D12Device1* _device, UINT width, UINT height);
 	~DefferedRenderer();
 
 	void Init();
-	void ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool bSetPSO);
+	void ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool bSetPSO, GameObject* gameObj, Camera* camera);
 	void ApplyLightingPSO(ID3D12GraphicsCommandList * command, bool bSetPSO);
-	void Render(ID3D12GraphicsCommandList * command, GameObject* gameObj, Camera* camera);
+	void Render(ID3D12GraphicsCommandList * command);
 };
 

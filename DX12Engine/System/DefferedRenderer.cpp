@@ -46,26 +46,41 @@ void DefferedRenderer::CreateConstantBuffers()
 void DefferedRenderer::CreateViews()
 {
 	cbvsrvHeap.Create(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 10, true);
-
+	cbHeap.Create(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 10, true);
+	pcbHeap.Create(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 10, true);
 	//Camera CBV
 	D3D12_CONSTANT_BUFFER_VIEW_DESC	descBuffer;
 	descBuffer.BufferLocation = viewCB->GetGPUVirtualAddress();
-	descBuffer.SizeInBytes = (sizeof(ConstantBuffer) + 255) & ~255;	//Constant buffer must be larger than 256 bytes
+	descBuffer.SizeInBytes = ConstantBufferPerObjectAlignedSize;	//Constant buffer must be larger than 256 bytes
 
-	device->CreateConstantBufferView(&descBuffer, cbvsrvHeap.hCPU(0));
+	const int numCBsForNow = 5;
+	for (int i = 0; i < numCBsForNow; ++i)
+	{
+		descBuffer.BufferLocation = viewCB->GetGPUVirtualAddress() + i * ConstantBufferPerObjectAlignedSize;
+		device->CreateConstantBufferView(&descBuffer, cbHeap.hCPU(i));
+	}
+	//device->CreateConstantBufferView(&descBuffer, cbvsrvHeap.hCPU(0));
 	//descBuffer.SizeInBytes = viewCB->GetGPUVirtualAddress() + ((sizeof(ConstantBuffer) + 255) & ~255);	//Constant buffer must be larger than 256 bytes
 	//device->CreateConstantBufferView(&descBuffer, cbvsrvHeap.hCPU(0));
 	
 	//Light CBV
 	descBuffer.BufferLocation = lightCB->GetGPUVirtualAddress();
-	descBuffer.SizeInBytes = (sizeof(ConstantBuffer) + 255) & ~255;
-	device->CreateConstantBufferView(&descBuffer, cbvsrvHeap.hCPU(1));
+	descBuffer.SizeInBytes = ConstantBufferPerObjectAlignedSize;
+	//device->CreateConstantBufferView(&descBuffer, pcbHeap.hCPU(1));
+	for (int i = 0; i < numCBsForNow; ++i)
+	{
+		descBuffer.BufferLocation = lightCB->GetGPUVirtualAddress() + i * ConstantBufferPerObjectAlignedSize;
+		device->CreateConstantBufferView(&descBuffer, pcbHeap.hCPU(i));
+	}
 
 	//------------------------
+	ZeroMemory(&cbPerObj, sizeof(cbPerObj));
 	CD3DX12_RANGE readRange(0, 0);    // We do not intend to read from this resource on the CPU. (End is less than or equal to begin)
 	viewCB->Map(0, &readRange, reinterpret_cast<void**>(&constantBufferGPUAddress));
-
-
+	lightCB->Map(0, &readRange, reinterpret_cast<void**>(&constantBufferGPUAddress));
+	// constant buffers must be 256 bytes aligned
+	/*memcpy(constantBufferGPUAddress, &cbPerObj, sizeof(ConstantBuffer));
+	memcpy(constantBufferGPUAddress + ConstantBufferPerObjectAlignedSize, &cbPerObj, sizeof(cbPerObj));*/
 }
 
 void DefferedRenderer::CreateRootSignature()
@@ -80,8 +95,8 @@ void DefferedRenderer::CreateRootSignature()
 	range[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 4, 0);
 
 	CD3DX12_ROOT_PARAMETER rootParameters[3];
-	rootParameters[0].InitAsDescriptorTable(1, &range[0], D3D12_SHADER_VISIBILITY_ALL);
-	rootParameters[1].InitAsDescriptorTable(1, &range[1], D3D12_SHADER_VISIBILITY_ALL);
+	rootParameters[0].InitAsDescriptorTable(1, &range[0], D3D12_SHADER_VISIBILITY_VERTEX);
+	rootParameters[1].InitAsDescriptorTable(1, &range[1], D3D12_SHADER_VISIBILITY_PIXEL);
 	rootParameters[2].InitAsDescriptorTable(1, &range[2], D3D12_SHADER_VISIBILITY_ALL);
 
 	CD3DX12_ROOT_SIGNATURE_DESC descRootSignature;
@@ -91,14 +106,14 @@ void DefferedRenderer::CreateRootSignature()
 		D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
 
 	CD3DX12_STATIC_SAMPLER_DESC StaticSamplers[1];
-	StaticSamplers[0].Init(0, D3D12_FILTER_MIN_MAG_MIP_LINEAR);
+	StaticSamplers[0].Init(0, D3D12_FILTER_ANISOTROPIC);
 	descRootSignature.NumStaticSamplers = 1;
 	descRootSignature.pStaticSamplers = StaticSamplers;
 
 
 	Microsoft::WRL::ComPtr<ID3DBlob> rootSigBlob, errorBlob;
 
-	D3D12SerializeRootSignature(&descRootSignature, D3D_ROOT_SIGNATURE_VERSION_1, rootSigBlob.GetAddressOf(), errorBlob.GetAddressOf());
+	D3D12SerializeRootSignature(&descRootSignature, D3D_ROOT_SIGNATURE_VERSION_1, &rootSigBlob, &errorBlob);
 
 	device->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
 }
@@ -109,8 +124,8 @@ void DefferedRenderer::CreatePSO()
 	D3D12_INPUT_ELEMENT_DESC inputLayout[] =
 	{
 		{ "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
-	{ "TEXCOORD" , 0, DXGI_FORMAT_R32G32_FLOAT,0,12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
-	{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT,0,20,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 }
+		{ "TEXCOORD" , 0, DXGI_FORMAT_R32G32_FLOAT,0,12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT,0,20,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 }
 	};
 
 	D3D12_INPUT_LAYOUT_DESC inputLayoutDesc = {};
@@ -143,7 +158,7 @@ void DefferedRenderer::CreateLightPassPSO()
 {
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC descPipelineState;
 	ZeroMemory(&descPipelineState, sizeof(descPipelineState));
-	descPipelineState.VS = ShaderManager::CompileVSShader(L"VertexShader.hlsl");
+	descPipelineState.VS = ShaderManager::CompileVSShader(L"VertexShader.hlsl");	// screequad vs
 	descPipelineState.PS = ShaderManager::CompilePSShader(L"PixelShader.hlsl");
 	descPipelineState.InputLayout.pInputElementDescs = nullptr;
 	descPipelineState.InputLayout.NumElements = 0;
@@ -158,6 +173,8 @@ void DefferedRenderer::CreateLightPassPSO()
 	descPipelineState.NumRenderTargets = 1;
 	descPipelineState.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 	descPipelineState.SampleDesc.Count = 1;
+
+	device->CreateGraphicsPipelineState(&descPipelineState, IID_PPV_ARGS(&lightPassPSO));
 }
 
 void DefferedRenderer::CreateRTV()
@@ -264,17 +281,15 @@ void DefferedRenderer::CreateDSV()
 	descSRV.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
 
-	device->CreateShaderResourceView(depthStencilTexture, &descSRV, cbvsrvHeap.hCPU(5));
+	device->CreateShaderResourceView(depthStencilTexture, &descSRV, cbvsrvHeap.hCPU(3));
 }
 
-void DefferedRenderer::ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool bSetPSO)
+void DefferedRenderer::ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool bSetPSO, GameObject* _gameObj, Camera* _camera)
 {
 	ID3D12DescriptorHeap* ppHeaps[] = { cbvsrvHeap.pDH.Get() };
-	if (bSetPSO)
-	{
-		command->SetPipelineState(pipelineStateObject);
-	}
-
+	gameObj = _gameObj;
+	camera = _camera;
+	command->SetPipelineState(pipelineStateObject);
 
 	for (int i = 0; i < numRTV; i++)
 		command->ClearRenderTargetView(rtvHeap.hCPU(i), mClearColor, 0, nullptr);
@@ -284,10 +299,13 @@ void DefferedRenderer::ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool
 	command->OMSetRenderTargets(numRTV, &rtvHeap.hCPUHeapStart, true, &dsvHeap.hCPUHeapStart);
 	command->SetDescriptorHeaps(1, ppHeaps);
 	command->SetGraphicsRootSignature(rootSignature);
-	command->SetGraphicsRootDescriptorTable(0, cbvsrvHeap.hGPU(0));
-	command->SetGraphicsRootDescriptorTable(1, cbvsrvHeap.hGPU(1));
+	command->SetGraphicsRootDescriptorTable(2, cbvsrvHeap.hGPU(1));
 	//command->SetGraphicsRootDescriptorTable(2, cbvsrvHeap.hGPU(2));
 
+	ID3D12DescriptorHeap* ppHeap2[] = { pcbHeap.pDH.Get() };
+	command->SetDescriptorHeaps(1, ppHeap2);
+	command->SetGraphicsRootDescriptorTable(1, pcbHeap.hGPU(0));
+	memcpy(constantBufferGPUAddress, &pCb, sizeof(ConstantBuffer));
 }
 
 void DefferedRenderer::ApplyLightingPSO(ID3D12GraphicsCommandList * command, bool bSetPSO)
@@ -305,21 +323,26 @@ void DefferedRenderer::ApplyLightingPSO(ID3D12GraphicsCommandList * command, boo
 
 }
 
-void DefferedRenderer::Render(ID3D12GraphicsCommandList * commandList, GameObject * gameObj, Camera* camera)
+void DefferedRenderer::Render(ID3D12GraphicsCommandList * commandList)
 {
+	ID3D12DescriptorHeap* ppHeaps[] = { cbHeap.pDH.Get() };
+	commandList->SetDescriptorHeaps(1, ppHeaps);
+
+
 	XMMATRIX viewMat = XMLoadFloat4x4(&camera->GetViewMatrix());					// load view matrix
 	XMMATRIX projMat = XMLoadFloat4x4(&camera->GetProjectionMatrix());				// load projection matrix
 	XMMATRIX wvpMat = XMLoadFloat4x4(&gameObj->GetWorldMatrix()) * viewMat * projMat; // create wvp matrix
 	XMStoreFloat4x4(&cbPerObj.worldViewProjectionMatrix, wvpMat);	// store transposed wvp matrix in constant buffer
 	XMStoreFloat4x4(&cbPerObj.worldMatrix, XMLoadFloat4x4(&gameObj->GetWorldMatrix()));	// store transposed world matrix in constant buffer
 
-	// constant buffers must be 256 bytes aligned
 	memcpy(constantBufferGPUAddress, &cbPerObj, sizeof(ConstantBuffer));
+	commandList->SetGraphicsRootDescriptorTable(0, cbvsrvHeap.hGPU(0));
 
 	commandList->IASetVertexBuffers(0, 1, &gameObj->GetMesh()->GetvBufferView());
 	commandList->IASetIndexBuffer(&gameObj->GetMesh()->GetiBufferView());
-	
 	//commandList->SetGraphicsRootConstantBufferView(0, viewCB->GetGPUVirtualAddress());
+	/*commandList->SetGraphicsRootConstantBufferView(1, viewCB->GetGPUVirtualAddress() + ConstantBufferPerObjectAlignedSize);
+	commandList->SetGraphicsRootConstantBufferView(2, viewCB->GetGPUVirtualAddress() + ConstantBufferPerObjectAlignedSize * 2);*/
 
 	// draw first cube
 	commandList->DrawIndexedInstanced(gameObj->GetMesh()->GetNumIndices(), 1, 0, 0, 0);

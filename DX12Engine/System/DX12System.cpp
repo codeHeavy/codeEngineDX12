@@ -617,6 +617,8 @@ void DX12System::Update()
 	//XMStoreFloat4x4(&constantBufferPerObject.worldViewProjectionMatrix, wvpMat);// store transposed wvp matrix in constant buffer
 	//// copy our ConstantBuffer instance to the mapped constant buffer resource
 	//memcpy(constantBufferGPUAddress[frameIndex] + ConstantBufferPerObjectAlignedSize, &constantBufferPerObject, sizeof(constantBufferPerObject));
+	cube1->UpdateWorldMatrix();
+	cube2->UpdateWorldMatrix();
 }
 
 //----------------------------------------------------------------------
@@ -687,13 +689,13 @@ void DX12System::Draw()
 	
 	//--------------------Deferred Rendering-----------------------
 
-	deferredRenderer->ApplyGBufferPSO(commandList,true);
-	deferredRenderer->Render(commandList, cube1, camera);
+	deferredRenderer->ApplyGBufferPSO(commandList,true, cube1, camera);
+	deferredRenderer->Render(commandList);
 	
 	//--------------------Deferred Rendering-----------------------
 
 	// --------------- Forward Rendering---------------------------
-	//// draw triangles
+	// draw triangles
 	//commandList->SetGraphicsRootSignature(rootSignature);
 	//// set descriptor heap
 	//ID3D12DescriptorHeap* descriptorHeaps[] = { mainDescriptorHeap };
@@ -793,6 +795,7 @@ void DX12System::Cleanup()
 		SAFE_RELEASE(constantBufferUploadHeap[i]);
 	};
 
+	delete deferredRenderer;
 }
 
 //----------------------------------------------------------------------

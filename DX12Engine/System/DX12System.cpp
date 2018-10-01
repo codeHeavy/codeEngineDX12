@@ -474,7 +474,8 @@ bool DX12System::SetupResources()
 	srvDesc.Format = textureDesc.Format;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = 1;
-	device->CreateShaderResourceView(textureBuffer, &srvDesc, mainDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+	deferredRenderer->SetSRV(textureBuffer, textureDesc.Format, 0);
+	//device->CreateShaderResourceView(textureBuffer, &srvDesc, mainDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 
 	mesh = new Mesh("Assets/Models/cone.obj", device, commandList);
 	// Create depth stencil
@@ -667,6 +668,9 @@ void DX12System::UpdatePipeline()
 	Draw();
 	commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 	commandList->ClearRenderTargetView(rtvHandle, clearColor, FALSE, nullptr);
+
+	deferredRenderer->ApplyLightingPSO(commandList,true);
+	deferredRenderer->DrawLightPass(commandList);
 	// transition render target from render target state to curtrrent state
 	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTargets[frameIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
 	hr = commandList->Close();	// resets to recording state
@@ -689,7 +693,7 @@ void DX12System::Draw()
 	
 	//--------------------Deferred Rendering-----------------------
 
-	deferredRenderer->ApplyGBufferPSO(commandList,true, cube1, camera);
+	deferredRenderer->ApplyGBufferPSO(commandList,true, cube1, camera,PSCBuffer);
 	deferredRenderer->Render(commandList);
 	
 	//--------------------Deferred Rendering-----------------------

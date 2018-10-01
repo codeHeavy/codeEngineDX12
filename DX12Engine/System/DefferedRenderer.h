@@ -28,6 +28,7 @@ private:
 
 	CDescriptorHeapWrapper cbHeap;
 	CDescriptorHeapWrapper pcbHeap;
+	PSConstantBuffer pBuffer;
 
 	ID3D12RootSignature* rootSignature;
 
@@ -45,9 +46,11 @@ private:
 	void CreateDSV();
 
 	UINT8* constantBufferGPUAddress;				// pointer to memory location
+	UINT8* constantBufferGPUAddressLight;				// pointer to memory location
 	ConstantBuffer cbPerObj;
 	ConstantBuffer pCb;
-	int ConstantBufferPerObjectAlignedSize = (sizeof(ConstantBuffer) + 255) & ~255;
+	static const int ConstantBufferPerObjectAlignedSize = (sizeof(ConstantBuffer) + 255) & ~255;
+	static const int PixelConstantBufferSize = (sizeof(PSConstantBuffer) + 255) & ~255;
 
 	DXGI_FORMAT mDsvFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	DXGI_FORMAT mRtvFormat[3] = { DXGI_FORMAT_R11G11B10_FLOAT, DXGI_FORMAT_R8G8B8A8_SNORM, DXGI_FORMAT_R8G8B8A8_UNORM };
@@ -58,8 +61,10 @@ public:
 	~DefferedRenderer();
 
 	void Init();
-	void ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool bSetPSO, GameObject* gameObj, Camera* camera);
+	void ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool bSetPSO, GameObject* gameObj, Camera* camera, const PSConstantBuffer& pixelCb);
 	void ApplyLightingPSO(ID3D12GraphicsCommandList * command, bool bSetPSO);
 	void Render(ID3D12GraphicsCommandList * command);
+	void SetSRV(ID3D12Resource* textureSRV, DXGI_FORMAT format, int index);
+	void DrawLightPass(ID3D12GraphicsCommandList * commandList);
 };
 

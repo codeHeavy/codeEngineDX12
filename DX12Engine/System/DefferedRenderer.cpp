@@ -9,6 +9,22 @@ DefferedRenderer::DefferedRenderer(ID3D12Device1* _device, UINT width, UINT heig
 
 DefferedRenderer::~DefferedRenderer()
 {
+	rootSignature->Release();
+
+	for (int i = 0; i < numRTV; ++i)
+		rtvTextures[numRTV]->Release();
+	depthStencilTexture->Release();
+
+	pipelineStateObject->Release();
+	lightPassPSO->Release();
+
+	rtvHeap.pDH->Release();
+	dsvHeap.pDH->Release();
+	srvHeap.pDH->Release();
+	cbvsrvHeap.pDH->Release();
+
+	lightCB->Release();
+	viewCB->Release();
 }
 
 void DefferedRenderer::Init()
@@ -65,11 +81,11 @@ void DefferedRenderer::CreateViews()
 	
 	//Light CBV
 	descBuffer.BufferLocation = lightCB->GetGPUVirtualAddress();
-	descBuffer.SizeInBytes = ConstantBufferPerObjectAlignedSize;
+	descBuffer.SizeInBytes = PixelConstantBufferSize;
 	//device->CreateConstantBufferView(&descBuffer, pcbHeap.hCPU(1));
 	for (int i = 0; i < numCBsForNow; ++i)
 	{
-		descBuffer.BufferLocation = lightCB->GetGPUVirtualAddress() + i * ConstantBufferPerObjectAlignedSize;
+		descBuffer.BufferLocation = lightCB->GetGPUVirtualAddress() + i * PixelConstantBufferSize;
 		device->CreateConstantBufferView(&descBuffer, pcbHeap.hCPU(i));
 	}
 
@@ -77,7 +93,7 @@ void DefferedRenderer::CreateViews()
 	ZeroMemory(&cbPerObj, sizeof(cbPerObj));
 	CD3DX12_RANGE readRange(0, 0);    // We do not intend to read from this resource on the CPU. (End is less than or equal to begin)
 	viewCB->Map(0, &readRange, reinterpret_cast<void**>(&constantBufferGPUAddress));
-	lightCB->Map(0, &readRange, reinterpret_cast<void**>(&constantBufferGPUAddress));
+	lightCB->Map(0, &readRange, reinterpret_cast<void**>(&constantBufferGPUAddressLight));
 	// constant buffers must be 256 bytes aligned
 	/*memcpy(constantBufferGPUAddress, &cbPerObj, sizeof(ConstantBuffer));
 	memcpy(constantBufferGPUAddress + ConstantBufferPerObjectAlignedSize, &cbPerObj, sizeof(cbPerObj));*/
@@ -90,9 +106,9 @@ void DefferedRenderer::CreateRootSignature()
 	//view dependent CBV
 	range[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);
 	//light dependent CBV
-	range[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 1);
+	range[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);
 	//G-Buffer inputs
-	range[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 4, 0);
+	range[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 8, 0);
 
 	CD3DX12_ROOT_PARAMETER rootParameters[3];
 	rootParameters[0].InitAsDescriptorTable(1, &range[0], D3D12_SHADER_VISIBILITY_VERTEX);
@@ -156,12 +172,14 @@ void DefferedRenderer::CreatePSO()
 
 void DefferedRenderer::CreateLightPassPSO()
 {
+	HRESULT hr;
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC descPipelineState;
 	ZeroMemory(&descPipelineState, sizeof(descPipelineState));
-	descPipelineState.VS = ShaderManager::CompileVSShader(L"VertexShader.hlsl");	// screequad vs
-	descPipelineState.PS = ShaderManager::CompilePSShader(L"PixelShader.hlsl");
+
+	descPipelineState.VS = ShaderManager::CompileVSShader(L"ScreenQuadVS.hlsl");
+	descPipelineState.PS = ShaderManager::CompilePSShader(L"LightPassPS.hlsl");
 	descPipelineState.InputLayout.pInputElementDescs = nullptr;
-	descPipelineState.InputLayout.NumElements = 0;
+	descPipelineState.InputLayout.NumElements = 0;// _countof(inputLayout);
 	descPipelineState.pRootSignature = rootSignature;
 	descPipelineState.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 	descPipelineState.DepthStencilState.DepthEnable = false;
@@ -174,7 +192,7 @@ void DefferedRenderer::CreateLightPassPSO()
 	descPipelineState.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 	descPipelineState.SampleDesc.Count = 1;
 
-	device->CreateGraphicsPipelineState(&descPipelineState, IID_PPV_ARGS(&lightPassPSO));
+	hr = device->CreateGraphicsPipelineState(&descPipelineState, IID_PPV_ARGS(&lightPassPSO));
 }
 
 void DefferedRenderer::CreateRTV()
@@ -284,9 +302,9 @@ void DefferedRenderer::CreateDSV()
 	device->CreateShaderResourceView(depthStencilTexture, &descSRV, cbvsrvHeap.hCPU(3));
 }
 
-void DefferedRenderer::ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool bSetPSO, GameObject* _gameObj, Camera* _camera)
+void DefferedRenderer::ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool bSetPSO, GameObject* _gameObj, Camera* _camera, const PSConstantBuffer& pixelCb)
 {
-	ID3D12DescriptorHeap* ppHeaps[] = { cbvsrvHeap.pDH.Get() };
+	ID3D12DescriptorHeap* ppHeaps[] = { srvHeap.pDH.Get() };
 	gameObj = _gameObj;
 	camera = _camera;
 	command->SetPipelineState(pipelineStateObject);
@@ -299,28 +317,24 @@ void DefferedRenderer::ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool
 	command->OMSetRenderTargets(numRTV, &rtvHeap.hCPUHeapStart, true, &dsvHeap.hCPUHeapStart);
 	command->SetDescriptorHeaps(1, ppHeaps);
 	command->SetGraphicsRootSignature(rootSignature);
-	command->SetGraphicsRootDescriptorTable(2, cbvsrvHeap.hGPU(1));
-	//command->SetGraphicsRootDescriptorTable(2, cbvsrvHeap.hGPU(2));
+	command->SetGraphicsRootDescriptorTable(2, srvHeap.hGPU(0));
 
 	ID3D12DescriptorHeap* ppHeap2[] = { pcbHeap.pDH.Get() };
 	command->SetDescriptorHeaps(1, ppHeap2);
 	command->SetGraphicsRootDescriptorTable(1, pcbHeap.hGPU(0));
-	memcpy(constantBufferGPUAddress, &pCb, sizeof(ConstantBuffer));
+	memcpy(constantBufferGPUAddressLight, &pixelCb, sizeof(PSConstantBuffer));
 }
 
 void DefferedRenderer::ApplyLightingPSO(ID3D12GraphicsCommandList * command, bool bSetPSO)
 {
+	for (int i = 0; i < numRTV; i++)
+		command->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rtvTextures[i], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_GENERIC_READ));
 
-	/*for (int i = 0; i < numRTV; i++)
-		AddResourceBarrier(command, mRtvTexture[i].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_GENERIC_READ);
+	command->SetPipelineState(lightPassPSO);
 
-	AddResourceBarrier(command, mDsTexture.Get(), D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_GENERIC_READ);
-
-	command->SetPipelineState(mLightPso.Get());
-
-	mQuadRender.Draw(command);*/
-
-
+	ID3D12DescriptorHeap* ppHeaps[] = { cbvsrvHeap.pDH.Get() };
+	command->SetDescriptorHeaps(1, ppHeaps);
+	command->SetGraphicsRootDescriptorTable(2, cbvsrvHeap.hGPU(0));
 }
 
 void DefferedRenderer::Render(ID3D12GraphicsCommandList * commandList)
@@ -336,7 +350,7 @@ void DefferedRenderer::Render(ID3D12GraphicsCommandList * commandList)
 	XMStoreFloat4x4(&cbPerObj.worldMatrix, XMLoadFloat4x4(&gameObj->GetWorldMatrix()));	// store transposed world matrix in constant buffer
 
 	memcpy(constantBufferGPUAddress, &cbPerObj, sizeof(ConstantBuffer));
-	commandList->SetGraphicsRootDescriptorTable(0, cbvsrvHeap.hGPU(0));
+	commandList->SetGraphicsRootDescriptorTable(0, cbHeap.hGPU(0));
 
 	commandList->IASetVertexBuffers(0, 1, &gameObj->GetMesh()->GetvBufferView());
 	commandList->IASetIndexBuffer(&gameObj->GetMesh()->GetiBufferView());
@@ -346,4 +360,32 @@ void DefferedRenderer::Render(ID3D12GraphicsCommandList * commandList)
 
 	// draw first cube
 	commandList->DrawIndexedInstanced(gameObj->GetMesh()->GetNumIndices(), 1, 0, 0, 0);
+}
+
+void DefferedRenderer::SetSRV(ID3D12Resource* textureSRV, DXGI_FORMAT format, int index)
+{
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Format = format;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = 1;
+	//device->CreateShaderResourceView(textureSRV, &srvDesc, srvHeap.pDescriptorHeap.Get()->GetCPUDescriptorHandleForHeapStart());
+	device->CreateShaderResourceView(textureSRV, &srvDesc, srvHeap.hCPU(index));
+}
+
+void DefferedRenderer::DrawLightPass(ID3D12GraphicsCommandList * commandList)
+{
+	D3D12_INDEX_BUFFER_VIEW ibv;
+	ibv.Format = DXGI_FORMAT_R32_UINT;
+	ibv.BufferLocation = 0;
+	ibv.SizeInBytes = 0;
+
+	D3D12_VERTEX_BUFFER_VIEW vbv;
+	vbv.BufferLocation = 0;
+	vbv.SizeInBytes = 0;
+	vbv.StrideInBytes = 0;
+	commandList->IASetVertexBuffers(0, 0, &vbv);
+	commandList->IASetIndexBuffer(&ibv);
+	commandList->DrawInstanced(4, 1, 0, 0);
+
 }

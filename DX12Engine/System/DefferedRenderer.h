@@ -6,6 +6,7 @@
 #include "ShaderManager.h"
 #include "GameObject.h"
 #include "Camera.h"
+#include <string>
 
 class DefferedRenderer
 {
@@ -42,6 +43,7 @@ private:
 	void CreateRootSignature();
 	void CreatePSO();
 	void CreateLightPassPSO();
+	void CreateLightPassPSOShape(std::wstring shapeShader);
 	void CreateRTV();
 	void CreateDSV();
 

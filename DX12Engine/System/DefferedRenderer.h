@@ -11,7 +11,7 @@
 class DefferedRenderer
 {
 private:
-	const static int numRTV = 3;
+	const static int numRTV = 4;
 	ID3D12Device1* device;
 
 	ID3D12Resource* viewCB;
@@ -57,21 +57,21 @@ private:
 	static const int PixelConstantBufferSize = (sizeof(PSConstantBuffer) + 255) & ~255;
 
 	DXGI_FORMAT mDsvFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	DXGI_FORMAT mRtvFormat[3] = { DXGI_FORMAT_R11G11B10_FLOAT, DXGI_FORMAT_R8G8B8A8_SNORM, DXGI_FORMAT_R8G8B8A8_UNORM };
+	DXGI_FORMAT mRtvFormat[4] = { DXGI_FORMAT_R11G11B10_FLOAT, DXGI_FORMAT_R8G8B8A8_SNORM, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R11G11B10_FLOAT };
 	GameObject* gameObj;
 	Camera* camera;
 	Mesh* sphereMesh;
-	GameObject* sphereObject;
+	//GameObject* sphereObject;
 public:
 	DefferedRenderer(ID3D12Device1* _device, UINT width, UINT height);
 	~DefferedRenderer();
 
-	void Init();
+	void Init(ID3D12GraphicsCommandList* command);
 	void ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool bSetPSO, GameObject* gameObj, Camera* camera, const PSConstantBuffer& pixelCb);
 	void ApplyLightingPSO(ID3D12GraphicsCommandList * command, bool bSetPSO);
 	void ApplyLightingShapePSO(ID3D12GraphicsCommandList * command, bool bSetPSO);
 	void Render(ID3D12GraphicsCommandList * command);
-	void RenderLightShape(ID3D12GraphicsCommandList * command);
+	void RenderLightShape(ID3D12GraphicsCommandList * command, const PSConstantBuffer& pixelCb);
 	void SetSRV(ID3D12Resource* textureSRV, DXGI_FORMAT format, int index);
 	void DrawLightPass(ID3D12GraphicsCommandList * commandList);
 };

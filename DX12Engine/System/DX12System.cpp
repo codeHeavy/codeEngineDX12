@@ -267,7 +267,7 @@ bool DX12System::InitD3D()
 bool DX12System::SetupResources()
 {
 	deferredRenderer = new DefferedRenderer(device, width, height);
-	deferredRenderer->Init();
+	deferredRenderer->Init(commandList);
 	HRESULT hr;
 
 	// descriptor range table = range of descriptors inside the descriptor heap
@@ -696,6 +696,8 @@ void DX12System::Draw()
 	deferredRenderer->ApplyGBufferPSO(commandList,true, cube1, camera,PSCBuffer);
 	deferredRenderer->Render(commandList);
 	
+	deferredRenderer->ApplyLightingShapePSO(commandList, true);
+	deferredRenderer->RenderLightShape(commandList,PSCBuffer);
 	//--------------------Deferred Rendering-----------------------
 
 	// --------------- Forward Rendering---------------------------

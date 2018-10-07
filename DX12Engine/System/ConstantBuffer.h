@@ -14,4 +14,5 @@ struct ConstantBuffer
 struct PSConstantBuffer
 {
 	DirectionalLight light;
+	PointLight pLight;
 };

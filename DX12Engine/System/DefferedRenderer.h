@@ -21,6 +21,7 @@ private:
 
 	ID3D12PipelineState* pipelineStateObject;
 	ID3D12PipelineState* lightPassPSO;
+	ID3D12PipelineState* lightPassShapePSO;
 
 	CDescriptorHeapWrapper cbvsrvHeap;
 	CDescriptorHeapWrapper dsvHeap;
@@ -49,6 +50,7 @@ private:
 
 	UINT8* constantBufferGPUAddress;				// pointer to memory location
 	UINT8* constantBufferGPUAddressLight;				// pointer to memory location
+	UINT8* constantBufferGPUAddressShape;				// pointer to memory location
 	ConstantBuffer cbPerObj;
 	ConstantBuffer pCb;
 	static const int ConstantBufferPerObjectAlignedSize = (sizeof(ConstantBuffer) + 255) & ~255;
@@ -58,6 +60,8 @@ private:
 	DXGI_FORMAT mRtvFormat[3] = { DXGI_FORMAT_R11G11B10_FLOAT, DXGI_FORMAT_R8G8B8A8_SNORM, DXGI_FORMAT_R8G8B8A8_UNORM };
 	GameObject* gameObj;
 	Camera* camera;
+	Mesh* sphereMesh;
+	GameObject* sphereObject;
 public:
 	DefferedRenderer(ID3D12Device1* _device, UINT width, UINT height);
 	~DefferedRenderer();
@@ -65,7 +69,9 @@ public:
 	void Init();
 	void ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool bSetPSO, GameObject* gameObj, Camera* camera, const PSConstantBuffer& pixelCb);
 	void ApplyLightingPSO(ID3D12GraphicsCommandList * command, bool bSetPSO);
+	void ApplyLightingShapePSO(ID3D12GraphicsCommandList * command, bool bSetPSO);
 	void Render(ID3D12GraphicsCommandList * command);
+	void RenderLightShape(ID3D12GraphicsCommandList * command);
 	void SetSRV(ID3D12Resource* textureSRV, DXGI_FORMAT format, int index);
 	void DrawLightPass(ID3D12GraphicsCommandList * commandList);
 };

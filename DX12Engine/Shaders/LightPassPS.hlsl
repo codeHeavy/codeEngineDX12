@@ -6,9 +6,16 @@ struct DirectionalLight
 	float3 Direction;
 };
 
+struct PointLight
+{
+	float4 Color;
+	float3 Position;
+};
+
 cbuffer lightData : register(b0)
 {
 	DirectionalLight dirLight;
+	PointLight	pLight;
 }
 
 struct VertexToPixel

@@ -8,3 +8,9 @@ struct DirectionalLight
 	XMFLOAT4 DiffuseColor;
 	XMFLOAT3 Direction;
 };
+
+struct PointLight
+{
+	XMFLOAT4 Color;
+	XMFLOAT3 Position;
+};

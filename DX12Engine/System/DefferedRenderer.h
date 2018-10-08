@@ -68,8 +68,8 @@ public:
 
 	void Init(ID3D12GraphicsCommandList* command);
 	void ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool bSetPSO, GameObject* gameObj, Camera* camera, const PSConstantBuffer& pixelCb);
-	void ApplyLightingPSO(ID3D12GraphicsCommandList * command, bool bSetPSO);
-	void ApplyLightingShapePSO(ID3D12GraphicsCommandList * command, bool bSetPSO);
+	void ApplyLightingPSO(ID3D12GraphicsCommandList * command, bool bSetPSO, const PSConstantBuffer& pixelCb);
+	void ApplyLightingShapePSO(ID3D12GraphicsCommandList * command, bool bSetPSO, const PSConstantBuffer& pixelCb);
 	void Render(ID3D12GraphicsCommandList * command);
 	void RenderLightShape(ID3D12GraphicsCommandList * command, const PSConstantBuffer& pixelCb);
 	void SetSRV(ID3D12Resource* textureSRV, DXGI_FORMAT format, int index);

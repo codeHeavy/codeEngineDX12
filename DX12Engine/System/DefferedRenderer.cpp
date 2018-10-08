@@ -219,7 +219,7 @@ void DefferedRenderer::CreateLightPassPSOShape(std::wstring shapeShader)
 	ZeroMemory(&descPipelineState, sizeof(descPipelineState));
 
 	descPipelineState.VS = ShaderManager::CompileVSShader(shapeShader);
-	descPipelineState.PS = ShaderManager::CompilePSShader(L"LightPassPS.hlsl");
+	descPipelineState.PS = ShaderManager::CompilePSShader(L"LightShapePS.hlsl");
 	descPipelineState.InputLayout = inputLayoutDesc;
 	//descPipelineState.InputLayout.pInputElementDescs = nullptr;
 	//descPipelineState.InputLayout.NumElements = 0;// _countof(inputLayout);
@@ -242,7 +242,7 @@ void DefferedRenderer::CreateRTV()
 {
 	HRESULT hr;
 
-	rtvHeap.Create(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 4);
+	rtvHeap.Create(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, numRTV);
 	CD3DX12_HEAP_PROPERTIES heapProperty(D3D12_HEAP_TYPE_DEFAULT);
 
 	D3D12_RESOURCE_DESC resourceDesc;
@@ -365,26 +365,28 @@ void DefferedRenderer::ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool
 	command->SetGraphicsRootSignature(rootSignature);
 	command->SetGraphicsRootDescriptorTable(2, srvHeap.hGPU(0));
 
-	ID3D12DescriptorHeap* ppHeap2[] = { pcbHeap.pDH.Get() };
-	command->SetDescriptorHeaps(1, ppHeap2);
-	command->SetGraphicsRootDescriptorTable(1, pcbHeap.hGPU(0));
-	memcpy(constantBufferGPUAddressLight, &pixelCb, sizeof(PSConstantBuffer));
+
 
 }
 
-void DefferedRenderer::ApplyLightingPSO(ID3D12GraphicsCommandList * command, bool bSetPSO)
+void DefferedRenderer::ApplyLightingPSO(ID3D12GraphicsCommandList * command, bool bSetPSO, const PSConstantBuffer& pixelCb)
 {
 	for (int i = 0; i < numRTV; i++)
 		command->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rtvTextures[i], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_GENERIC_READ));
 
 	command->SetPipelineState(lightPassPSO);
 
+	ID3D12DescriptorHeap* ppHeap2[] = { pcbHeap.pDH.Get() };
+	command->SetDescriptorHeaps(1, ppHeap2);
+	command->SetGraphicsRootDescriptorTable(1, pcbHeap.hGPU(0));
+	memcpy(constantBufferGPUAddressLight, &pixelCb, sizeof(PSConstantBuffer));
+	
 	ID3D12DescriptorHeap* ppHeaps[] = { cbvsrvHeap.pDH.Get() };
 	command->SetDescriptorHeaps(1, ppHeaps);
 	command->SetGraphicsRootDescriptorTable(2, cbvsrvHeap.hGPU(0));
 }
 
-void DefferedRenderer::ApplyLightingShapePSO(ID3D12GraphicsCommandList * command, bool bSetPSO)
+void DefferedRenderer::ApplyLightingShapePSO(ID3D12GraphicsCommandList * command, bool bSetPSO, const PSConstantBuffer& pixelCb)
 {
 	for (int i = 0; i < numRTV; i++)
 		command->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rtvTextures[i], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_GENERIC_READ));
@@ -394,9 +396,9 @@ void DefferedRenderer::ApplyLightingShapePSO(ID3D12GraphicsCommandList * command
 	command->OMSetRenderTargets(1, &rtvHeap.hCPU(numRTV-1), true, nullptr);
 	command->SetPipelineState(lightPassShapePSO);
 
-	//ID3D12DescriptorHeap* ppHeap2[] = { pcbHeap.pDH.Get() };
-	//command->SetDescriptorHeaps(1, ppHeap2);
-	//command->SetGraphicsRootDescriptorTable(1, pcbHeap.hGPU(0));
+	ID3D12DescriptorHeap* ppHeap2[] = { pcbHeap.pDH.Get() };
+	command->SetDescriptorHeaps(1, ppHeap2);
+	command->SetGraphicsRootDescriptorTable(1, pcbHeap.hGPU(0));
 	ID3D12DescriptorHeap* ppHeaps[] = { cbvsrvHeap.pDH.Get() };
 	command->SetDescriptorHeaps(1, ppHeaps);
 	command->SetGraphicsRootDescriptorTable(2, cbvsrvHeap.hGPU(0));
@@ -429,8 +431,8 @@ void DefferedRenderer::RenderLightShape(ID3D12GraphicsCommandList * command, con
 
 	GameObject sphereObject(sphereMesh);
 	sphereObject.SetPosition(pixelCb.pLight.Position);
-	sphereObject.SetScale(XMFLOAT3(3, 3, 3));
-
+	sphereObject.SetScale(XMFLOAT3(5, 5, 5));
+	sphereObject.UpdateWorldMatrix();
 	XMMATRIX viewMat = XMLoadFloat4x4(&camera->GetViewMatrix());					// load view matrix
 	XMMATRIX projMat = XMLoadFloat4x4(&camera->GetProjectionMatrix());				// load projection matrix
 	XMMATRIX wvpMat = XMLoadFloat4x4(&sphereObject.GetWorldMatrix()) * viewMat * projMat; // create wvp matrix

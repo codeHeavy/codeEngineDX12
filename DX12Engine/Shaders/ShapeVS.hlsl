@@ -6,7 +6,7 @@ struct VS_INPUT
 	float3 normal : NORMAL;
 };
 
-struct VS_OUTPUT
+struct VertexToPixel
 {
 	float4 position		: SV_POSITION;
 	float2 uv           : TEXCOORD0;
@@ -18,9 +18,9 @@ cbuffer ConstantBuffer : register(b0)
 	float4x4 worldMatrix;
 }
 
-VS_OUTPUT main(VS_INPUT input)
+VertexToPixel main(VS_INPUT input)
 {
-	VS_OUTPUT output;
+	VertexToPixel output;
 	output.position = mul(input.pos, worldViewProjectionMatrix);
 	output.uv = input.texCoord;
 	return output;

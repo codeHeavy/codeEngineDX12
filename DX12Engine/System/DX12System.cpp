@@ -514,8 +514,11 @@ bool DX12System::SetupResources()
 
 	// Set lights
 	PSCBuffer.light.AmbientColor = XMFLOAT4(0.1, 0.1, 0.1, 1.0);
-	PSCBuffer.light.DiffuseColor = XMFLOAT4(0, 0, 1, 1);
+	PSCBuffer.light.DiffuseColor = XMFLOAT4(1, 1, 1, 1);
 	PSCBuffer.light.Direction = XMFLOAT3(1, -1, 0);
+
+	PSCBuffer.pLight.Color = XMFLOAT4(1, 0, 0, 1);
+	PSCBuffer.pLight.Position = XMFLOAT3(0, 0.5, 0);
 
 	// create constant buffer resource heap
 	// Resource heaps must be multiples of 64KB of size
@@ -589,7 +592,7 @@ void DX12System::BuildViewProjMatrix()
 
 	// first cube
 	cube1 = new GameObject(mesh);
-	
+	cube1->SetPosition(XMFLOAT3(0.0f, 0.5f, 0.0f));
 	// second cube
 	cube2 = new GameObject(mesh);
 	cube2->SetPosition(XMFLOAT3(0.5f, 0.0f, 0.0f));
@@ -669,7 +672,7 @@ void DX12System::UpdatePipeline()
 	commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 	commandList->ClearRenderTargetView(rtvHandle, clearColor, FALSE, nullptr);
 
-	deferredRenderer->ApplyLightingPSO(commandList,true);
+	deferredRenderer->ApplyLightingPSO(commandList,true,PSCBuffer);
 	deferredRenderer->DrawLightPass(commandList);
 	// transition render target from render target state to curtrrent state
 	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTargets[frameIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
@@ -696,7 +699,7 @@ void DX12System::Draw()
 	deferredRenderer->ApplyGBufferPSO(commandList,true, cube1, camera,PSCBuffer);
 	deferredRenderer->Render(commandList);
 	
-	deferredRenderer->ApplyLightingShapePSO(commandList, true);
+	deferredRenderer->ApplyLightingShapePSO(commandList, true,PSCBuffer);
 	deferredRenderer->RenderLightShape(commandList,PSCBuffer);
 	//--------------------Deferred Rendering-----------------------
 

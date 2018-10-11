@@ -169,6 +169,7 @@ void DefferedRenderer::CreatePSO()
 	descPipelineState.RTVFormats[0] = mRtvFormat[0];
 	descPipelineState.RTVFormats[1] = mRtvFormat[1];
 	descPipelineState.RTVFormats[2] = mRtvFormat[2];
+	descPipelineState.RTVFormats[3] = mRtvFormat[3];
 	descPipelineState.DSVFormat = mDsvFormat;
 	descPipelineState.SampleDesc.Count = 1;
 
@@ -218,11 +219,9 @@ void DefferedRenderer::CreateLightPassPSOShape(std::wstring shapeShader)
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC descPipelineState;
 	ZeroMemory(&descPipelineState, sizeof(descPipelineState));
 
-	descPipelineState.VS = ShaderManager::CompileVSShader(shapeShader);
+	descPipelineState.VS = ShaderManager::CompileVSShader(L"ShapeVS.hlsl");
 	descPipelineState.PS = ShaderManager::CompilePSShader(L"LightShapePS.hlsl");
 	descPipelineState.InputLayout = inputLayoutDesc;
-	//descPipelineState.InputLayout.pInputElementDescs = nullptr;
-	//descPipelineState.InputLayout.NumElements = 0;// _countof(inputLayout);
 	descPipelineState.pRootSignature = rootSignature;
 	descPipelineState.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 	descPipelineState.DepthStencilState.DepthEnable = false;
@@ -345,7 +344,7 @@ void DefferedRenderer::CreateDSV()
 	descSRV.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
 
-	device->CreateShaderResourceView(depthStencilTexture, &descSRV, cbvsrvHeap.hCPU(3));
+	device->CreateShaderResourceView(depthStencilTexture, &descSRV, cbvsrvHeap.hCPU(4));
 }
 
 void DefferedRenderer::ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool bSetPSO, GameObject* _gameObj, Camera* _camera, const PSConstantBuffer& pixelCb)
@@ -365,7 +364,10 @@ void DefferedRenderer::ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool
 	command->SetGraphicsRootSignature(rootSignature);
 	command->SetGraphicsRootDescriptorTable(2, srvHeap.hGPU(0));
 
-
+	ID3D12DescriptorHeap* ppHeap2[] = { pcbHeap.pDH.Get() };
+	command->SetDescriptorHeaps(1, ppHeap2);
+	command->SetGraphicsRootDescriptorTable(1, pcbHeap.hGPU(0));
+	memcpy(constantBufferGPUAddressLight, &pixelCb, sizeof(PSConstantBuffer));
 
 }
 
@@ -399,6 +401,7 @@ void DefferedRenderer::ApplyLightingShapePSO(ID3D12GraphicsCommandList * command
 	ID3D12DescriptorHeap* ppHeap2[] = { pcbHeap.pDH.Get() };
 	command->SetDescriptorHeaps(1, ppHeap2);
 	command->SetGraphicsRootDescriptorTable(1, pcbHeap.hGPU(0));
+	
 	ID3D12DescriptorHeap* ppHeaps[] = { cbvsrvHeap.pDH.Get() };
 	command->SetDescriptorHeaps(1, ppHeaps);
 	command->SetGraphicsRootDescriptorTable(2, cbvsrvHeap.hGPU(0));
@@ -431,7 +434,7 @@ void DefferedRenderer::RenderLightShape(ID3D12GraphicsCommandList * command, con
 
 	GameObject sphereObject(sphereMesh);
 	sphereObject.SetPosition(pixelCb.pLight.Position);
-	sphereObject.SetScale(XMFLOAT3(5, 5, 5));
+	sphereObject.SetScale(XMFLOAT3(10, 10, 10));
 	sphereObject.UpdateWorldMatrix();
 	XMMATRIX viewMat = XMLoadFloat4x4(&camera->GetViewMatrix());					// load view matrix
 	XMMATRIX projMat = XMLoadFloat4x4(&camera->GetProjectionMatrix());				// load projection matrix

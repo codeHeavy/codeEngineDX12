@@ -514,11 +514,11 @@ bool DX12System::SetupResources()
 
 	// Set lights
 	PSCBuffer.light.AmbientColor = XMFLOAT4(0.1, 0.1, 0.1, 1.0);
-	PSCBuffer.light.DiffuseColor = XMFLOAT4(1, 1, 1, 1);
+	PSCBuffer.light.DiffuseColor = XMFLOAT4(1, 0, 0, 1);
 	PSCBuffer.light.Direction = XMFLOAT3(1, -1, 0);
 
-	PSCBuffer.pLight.Color = XMFLOAT4(1, 0, 0, 1);
-	PSCBuffer.pLight.Position = XMFLOAT3(0, 0.5, 0);
+	PSCBuffer.pLight.Color = XMFLOAT4(0, 0, 1, 1);
+	PSCBuffer.pLight.Position = XMFLOAT3(0.5, 0.5, 0.0);
 
 	// create constant buffer resource heap
 	// Resource heaps must be multiples of 64KB of size
@@ -592,7 +592,9 @@ void DX12System::BuildViewProjMatrix()
 
 	// first cube
 	cube1 = new GameObject(mesh);
-	cube1->SetPosition(XMFLOAT3(0.0f, 0.5f, 0.0f));
+	cube1->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
+	cube1->SetScale(XMFLOAT3(2, 2, 2));
+	
 	// second cube
 	cube2 = new GameObject(mesh);
 	cube2->SetPosition(XMFLOAT3(0.5f, 0.0f, 0.0f));
@@ -669,7 +671,7 @@ void DX12System::UpdatePipeline()
 
 	// Draw call
 	Draw();
-	commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+	commandList->OMSetRenderTargets(1, &rtvHandle, true, nullptr);
 	commandList->ClearRenderTargetView(rtvHandle, clearColor, FALSE, nullptr);
 
 	deferredRenderer->ApplyLightingPSO(commandList,true,PSCBuffer);

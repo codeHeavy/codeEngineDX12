@@ -476,7 +476,7 @@ bool DX12System::SetupResources()
 	srvDesc.Texture2D.MipLevels = 1;
 	deferredRenderer->SetSRV(textureBuffer, textureDesc.Format, 0);
 	//device->CreateShaderResourceView(textureBuffer, &srvDesc, mainDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
-
+	
 	mesh = new Mesh("Assets/Models/cone.obj", device, commandList);
 	// Create depth stencil
 	// Create depth stencil descriptor heap

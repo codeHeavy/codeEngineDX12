@@ -72,7 +72,7 @@ void DefferedRenderer::CreateViews()
 	descBuffer.BufferLocation = viewCB->GetGPUVirtualAddress();
 	descBuffer.SizeInBytes = ConstantBufferPerObjectAlignedSize;	//Constant buffer must be larger than 256 bytes
 
-	const int numCBsForNow = 5;
+	const int numCBsForNow = 6;
 	for (int i = 0; i < numCBsForNow; ++i)
 	{
 		descBuffer.BufferLocation = viewCB->GetGPUVirtualAddress() + i * ConstantBufferPerObjectAlignedSize;

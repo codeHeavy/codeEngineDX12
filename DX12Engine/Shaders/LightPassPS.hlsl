@@ -11,12 +11,14 @@ struct PointLight
 {
 	float4 Color;
 	float3 Position;
+	float padding;
 };
 
 cbuffer lightData : register(b0)
 {
 	DirectionalLight dirLight;
 	PointLight	pLight;
+	float4 CamPos;
 }
 
 struct VertexToPixel
@@ -41,18 +43,19 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float3 albedo = gAlbedoTexture.Load(sampleIndices).xyz;
 	float3 shapeLight = gLightShapePass.Load(sampleIndices).xyz;
 
-
-	/*float3 albedo = gAlbedoTexture.Sample(s1, input.uv).rgb;
-	float3 normal = gNormalTexture.Sample(s1, input.uv).rgb;
-	float3 pos = gWorldPosTexture.Sample(s1, input.uv).rgb;
-	float3 otherlights = gLightShapePass.Sample(s1, input.uv).rgb;*/
-
 	float3 dirToLight = normalize(dirLight.Direction);
 	float NdotL = dot(normal, -dirToLight);
 	NdotL = saturate(NdotL);
 	float4 lightColor = dirLight.DiffuseColor * NdotL + dirLight.AmbientLight;
 
-	float3 finalColor = lightColor * albedo;
+	// Specular
+	float3 dirToCam = normalize( CamPos - pos );
+	float3 pLightDir = normalize( pLight.Position - pos);
+	// incoming light dir
+	float3 refl = reflect(-pLightDir, normal);
+	float spec = pow(saturate(dot(dirToCam, refl)), 128);
+
+	float3 finalColor = (lightColor + spec.xxxx) * albedo;
 	return float4(finalColor + shapeLight,1.0f);
 
 }

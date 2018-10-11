@@ -17,12 +17,14 @@ struct PointLight
 {
 	float4 Color;
 	float3 Position;
+	float padding;
 };
 
 cbuffer externalData : register(b0)
 {
 	DirectionalLight dirLight;
 	PointLight pointLight;
+	float4 CamPos;
 }
 
 Texture2D gAlbedoTexture : register(t0);
@@ -39,11 +41,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float3 pos		= gWorldPosTexture.Load(sampleIndices).xyz;
 	float3 albedo	= gAlbedoTexture.Load(sampleIndices).xyz  ;
 	normal = normalize(normal);
-
-	//float3 albedo = gAlbedoTexture.Sample(s1, input.position.xy).rgb;
-	//float3 normal = gNormalTexture.Sample(s1, input.position.xy).rgb;
-	//float3 pos = gWorldPosTexture.Sample(s1, input.position.xy).rgb;
-	//return float4(pointLight.Position.z,0,0,1.0);
+	
 	float3 dirToLight	= normalize(pos - pointLight.Position);
 	float pointNdotL	= dot(normal, -dirToLight);
 	pointNdotL			= saturate(pointNdotL);

@@ -589,7 +589,7 @@ void DX12System::BuildViewProjMatrix()
 	camera = new Camera();
 	camera->Update();
 	camera->UpdateProjectionMatrix(width, height);
-
+	PSCBuffer.CamPos = DirectX::XMFLOAT4(camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z, 1.0);
 	// first cube
 	cube1 = new GameObject(mesh);
 	cube1->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
@@ -615,7 +615,7 @@ void DX12System::Update()
 	XMMATRIX wvpMat = XMLoadFloat4x4(&cube1->GetWorldMatrix()) * viewMat * projMat; // create wvp matrix
 	XMStoreFloat4x4(&constantBufferPerObject.worldViewProjectionMatrix, wvpMat);	// store transposed wvp matrix in constant buffer
 	XMStoreFloat4x4(&constantBufferPerObject.worldMatrix, XMLoadFloat4x4(&cube1->GetWorldMatrix()));	// store transposed world matrix in constant buffer
-	
+	PSCBuffer.CamPos = DirectX::XMFLOAT4(camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z, 1.0);
 	// copy our ConstantBuffer instance to the mapped constant buffer resource
 	memcpy(constantBufferGPUAddress[frameIndex], &constantBufferPerObject, sizeof(constantBufferPerObject));
 

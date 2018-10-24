@@ -5,6 +5,7 @@ struct VS_INPUT
 	float4 pos : POSITION;
 	float2 texCoord : TEXCOORD;
 	float3 normal : NORMAL;
+	float3 tangent : TANGENT;
 };
 
 struct VS_OUTPUT
@@ -13,6 +14,7 @@ struct VS_OUTPUT
 	float2 texCoord : TEXCOORD;
 	float3 normal : NORMAL;
 	float3 worldPos : POSITION;
+	float3 tangent: TANGENT;
 };
 
 cbuffer ConstantBuffer : register(b0)
@@ -29,5 +31,6 @@ VS_OUTPUT main( VS_INPUT input )
 	output.pos = mul(input.pos, worldViewProjectionMatrix);
 	output.texCoord = input.texCoord;
 	output.worldPos = mul(input.pos, worldMatrix).xyz;
+	output.tangent = input.tangent;
 	return output;
 }

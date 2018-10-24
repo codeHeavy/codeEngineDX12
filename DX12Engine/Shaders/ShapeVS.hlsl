@@ -4,6 +4,7 @@ struct VS_INPUT
 	float4 pos : POSITION;
 	float2 texCoord : TEXCOORD;
 	float3 normal : NORMAL;
+	float3 tangent : TANGENT;
 };
 
 struct VertexToPixel

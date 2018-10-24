@@ -379,7 +379,8 @@ bool DX12System::SetupResources()
 	{
 		{"POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0},
 		{ "TEXCOORD" , 0, DXGI_FORMAT_R32G32_FLOAT,0,12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0},
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT,0,20,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 }
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT,0,20,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
+		{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT,0,32,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 }
 	};
 
 	D3D12_INPUT_LAYOUT_DESC inputLayoutDesc = {};
@@ -475,6 +476,55 @@ bool DX12System::SetupResources()
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = 1;
 	deferredRenderer->SetSRV(textureBuffer, textureDesc.Format, 0);
+
+	imageSize = LoadImageDataFromFile(&imageData, textureDesc, L"Assets/Images/normal.png", imageBytesPerRaw);
+	// Check if image exists
+	if (imageSize <= 0)
+	{
+		running = false;
+		return false;
+	}
+
+	// create default heap for texture
+	hr = device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+		D3D12_HEAP_FLAG_NONE, &textureDesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&normalTexBuffer)
+	);
+	if (FAILED(hr))
+	{
+		running = false;
+		return false;
+	}
+	textureBuffer->SetName(L"Normal Texture buffer resource heap");
+
+	// get texture heap size which is 256 byte aligned
+	//UINT64 textureUploadBufferSize;
+	device->GetCopyableFootprints(&textureDesc, 0, 1, 0, nullptr, nullptr, nullptr, &textureUploadBufferSize);
+
+	// create upload heap for texture
+	hr = device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), D3D12_HEAP_FLAG_NONE,
+		&CD3DX12_RESOURCE_DESC::Buffer(textureUploadBufferSize), D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
+		IID_PPV_ARGS(&textureBufferUploadHeap));
+	if (FAILED(hr))
+	{
+		running = false;
+		return false;
+	}
+	textureBufferUploadHeap->SetName(L"Texture Buffer Upload Resource Heap");
+
+	// store data in upload heap
+	//D3D12_SUBRESOURCE_DATA textureData = {};
+	textureData.pData = &imageData[0];
+	textureData.RowPitch = imageBytesPerRaw;
+	textureData.SlicePitch = imageBytesPerRaw * textureDesc.Height;
+
+	// copy contents to default heap
+	UpdateSubresources(commandList, normalTexBuffer, textureBufferUploadHeap, 0, 0, 1, &textureData);
+
+	// transition the texture from default heap to pixel shader
+	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(normalTexBuffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+
+	deferredRenderer->SetSRV(normalTexBuffer, textureDesc.Format, 1);
+
 	//device->CreateShaderResourceView(textureBuffer, &srvDesc, mainDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 	
 	mesh = new Mesh("Assets/Models/cone.obj", device, commandList);

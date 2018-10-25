@@ -48,7 +48,7 @@ PS_Output main(VS_OUTPUT input) : SV_TARGET
 	input.normal = normalize(input.normal);
 	float3 normal = calculateNormalFromMap(input.texCoord, input.normal, input.tangent);
 	output.albedo = t1.Sample(s1, input.texCoord);
-	output.normal = float4(normalize(input.normal), 1.0f);
+	output.normal = float4(normalize(normal), 1.0f);
 	output.worldPos = float4(input.worldPos, 0.0f);
 	
 	return output;

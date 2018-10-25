@@ -413,7 +413,7 @@ bool DX12System::SetupResources()
 	D3D12_RESOURCE_DESC textureDesc;
 	int imageBytesPerRaw;
 	BYTE* imageData;
-	int imageSize = LoadImageDataFromFile(&imageData, textureDesc, L"Assets/Images/tex1.jpg", imageBytesPerRaw);
+	int imageSize = LoadImageDataFromFile(&imageData, textureDesc, L"Assets/Images/WoodGreen/Shingles_Wood_Stylized_001_baseColor.jpg", imageBytesPerRaw);
 	// Check if image exists
 	if (imageSize <= 0)
 	{
@@ -477,7 +477,7 @@ bool DX12System::SetupResources()
 	srvDesc.Texture2D.MipLevels = 1;
 	deferredRenderer->SetSRV(textureBuffer, textureDesc.Format, 0);
 
-	imageSize = LoadImageDataFromFile(&imageData, textureDesc, L"Assets/Images/normal.png", imageBytesPerRaw);
+	imageSize = LoadImageDataFromFile(&imageData, textureDesc, L"Assets/Images/WoodGreen/Shingles_Wood_Stylized_001_normal.jpg", imageBytesPerRaw);
 	// Check if image exists
 	if (imageSize <= 0)
 	{
@@ -527,7 +527,7 @@ bool DX12System::SetupResources()
 
 	//device->CreateShaderResourceView(textureBuffer, &srvDesc, mainDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 	
-	mesh = new Mesh("Assets/Models/cone.obj", device, commandList);
+	mesh = new Mesh("Assets/Models/sphere.obj", device, commandList);
 	// Create depth stencil
 	// Create depth stencil descriptor heap
 	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};

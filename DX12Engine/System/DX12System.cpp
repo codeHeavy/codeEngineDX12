@@ -409,10 +409,14 @@ bool DX12System::SetupResources()
 		return false;
 	}
 
-	texture = new Texture(L"Assets/Images/WoodGreen/Shingles_Wood_Stylized_001_baseColor.jpg",device, commandList);
-	normalTexture = new Texture(L"Assets/Images/WoodGreen/Shingles_Wood_Stylized_001_normal.jpg", device, commandList);
+	texture = new Texture(L"Assets/Images/MetalPlate/Metal_Plate_010_baseColor_A.jpg",device, commandList);
+	normalTexture = new Texture(L"Assets/Images/MetalPlate/Metal_Plate_010_normal.jpg", device, commandList);
+	roughnessTexture = new Texture(L"Assets/Images/MetalPlate/Metal_Plate_010_roughness_A.jpg", device, commandList);
+	metalTexture = new Texture(L"Assets/Images/MetalPlate/Metal_Plate_010_metallic_A.jpg", device, commandList);
 	deferredRenderer->SetSRV(texture->GetTexture(), texture->GetFormat(), 0);
 	deferredRenderer->SetSRV(normalTexture->GetTexture(), normalTexture->GetFormat(), 1);
+	deferredRenderer->SetSRV(roughnessTexture->GetTexture(), roughnessTexture->GetFormat(), 2);
+	deferredRenderer->SetSRV(metalTexture->GetTexture(), metalTexture->GetFormat(), 3);
 	
 	mesh = new Mesh("Assets/Models/sphere.obj", device, commandList);
 	// Create depth stencil
@@ -641,37 +645,6 @@ void DX12System::Draw()
 	deferredRenderer->ApplyLightingShapePSO(commandList, true,PSCBuffer);
 	deferredRenderer->RenderLightShape(commandList,PSCBuffer);
 	//--------------------Deferred Rendering-----------------------
-
-	// --------------- Forward Rendering---------------------------
-	// draw triangles
-	//commandList->SetGraphicsRootSignature(rootSignature);
-	//// set descriptor heap
-	//ID3D12DescriptorHeap* descriptorHeaps[] = { mainDescriptorHeap };
-	//commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
-	//commandList->SetGraphicsRootDescriptorTable(1, mainDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
-	//
-	//commandList->IASetVertexBuffers(0, 1, &cube1->GetMesh()->GetvBufferView());
-	//commandList->IASetIndexBuffer(&cube1->GetMesh()->GetiBufferView());
-	//
-	//// Set light
-	//commandList->SetGraphicsRootConstantBufferView(2, constantBufferUploadHeap[frameIndex]->GetGPUVirtualAddress() + ConstantBufferPerObjectAlignedSize * 2);
-
-	//// first cube
-	//// set cube1's constant buffer
-	//commandList->SetGraphicsRootConstantBufferView(0, constantBufferUploadHeap[frameIndex]->GetGPUVirtualAddress());
-
-	//// draw first cube
-	//commandList->DrawIndexedInstanced(cube1->GetMesh()->GetNumIndices(), 1, 0, 0, 0);
-	//
-	//// second cube
-	//// set cube2's constant buffer. You can see we are adding the size of ConstantBufferPerObject to the constant buffer
-	//// resource heaps address. This is because cube1's constant buffer is stored at the beginning of the resource heap, while
-	//// cube2's constant buffer data is stored after (256 bits from the start of the heap).
-	//commandList->SetGraphicsRootConstantBufferView(0, constantBufferUploadHeap[frameIndex]->GetGPUVirtualAddress() + ConstantBufferPerObjectAlignedSize);
-
-	//// draw second cube
-	//commandList->DrawIndexedInstanced(cube2->GetMesh()->GetNumIndices(), 1, 0, 0, 0);
-	// --------------- Forward Rendering---------------------------
 }
 
 //----------------------------------------------------------------------
@@ -743,8 +716,10 @@ void DX12System::Cleanup()
 		SAFE_RELEASE(constantBufferUploadHeap[i]);
 	};
 
-	SAFE_RELEASE(textureBuffer);
-	SAFE_RELEASE(normalTexBuffer);
+	delete texture;
+	delete normalTexture;
+	delete roughnessTexture;
+	delete metalTexture;
 	delete deferredRenderer;
 }
 

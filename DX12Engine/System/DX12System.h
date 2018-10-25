@@ -97,13 +97,10 @@ public:
 
 	void BuildViewProjMatrix();
 
-	// Texturing 
-	ID3D12Resource* textureBuffer;
-	ID3D12Resource* normalTexBuffer;
-	ID3D12DescriptorHeap* mainDescriptorHeap;
-	ID3D12Resource* textureBufferUploadHeap;
 	Texture* texture;
 	Texture* normalTexture;
+	Texture* roughnessTexture;
+	Texture* metalTexture;
 
 	DefferedRenderer* deferredRenderer;
 

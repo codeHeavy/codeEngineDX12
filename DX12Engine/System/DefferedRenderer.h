@@ -11,7 +11,7 @@
 class DefferedRenderer
 {
 private:
-	const static int numRTV = 4;
+	const static int numRTV = 6;
 	ID3D12Device1* device;
 
 	ID3D12Resource* viewCB;

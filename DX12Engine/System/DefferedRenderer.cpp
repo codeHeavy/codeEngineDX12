@@ -72,7 +72,7 @@ void DefferedRenderer::CreateViews()
 	descBuffer.BufferLocation = viewCB->GetGPUVirtualAddress();
 	descBuffer.SizeInBytes = ConstantBufferPerObjectAlignedSize;	//Constant buffer must be larger than 256 bytes
 
-	const int numCBsForNow = 6;
+	const int numCBsForNow = 5;
 	for (int i = 0; i < numCBsForNow; ++i)
 	{
 		descBuffer.BufferLocation = viewCB->GetGPUVirtualAddress() + i * ConstantBufferPerObjectAlignedSize;
@@ -294,7 +294,7 @@ void DefferedRenderer::CreateRTV()
 	descSRV.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	descSRV.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
-	srvHeap.Create(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 10, true);
+	srvHeap.Create(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 32, true);
 
 	for (int i = 0; i < numRTV; i++) {
 		descSRV.Format = mRtvFormat[i];
@@ -346,7 +346,7 @@ void DefferedRenderer::CreateDSV()
 	descSRV.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
 
-	device->CreateShaderResourceView(depthStencilTexture, &descSRV, cbvsrvHeap.hCPU(4));
+	device->CreateShaderResourceView(depthStencilTexture, &descSRV, cbvsrvHeap.hCPU(6));
 }
 
 void DefferedRenderer::ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool bSetPSO, GameObject* _gameObj, Camera* _camera, const PSConstantBuffer& pixelCb)

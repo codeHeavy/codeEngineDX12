@@ -164,6 +164,7 @@
     <ClInclude Include="System\Mesh.h" />
     <ClInclude Include="System\ShaderManager.h" />
     <ClInclude Include="System\Vertex.h" />
+    <ClInclude Include="Texture.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -179,6 +180,7 @@
     <ClCompile Include="System\GameObject.cpp" />
     <ClCompile Include="System\Mesh.cpp" />
     <ClCompile Include="System\ShaderManager.cpp" />
+    <ClCompile Include="Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\DeferredPixelShader.hlsl">
@@ -209,6 +211,9 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\Lighting.hlsli" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

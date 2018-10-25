@@ -1,6 +1,6 @@
 
 #include "DX12System.h"
-#include "ImageLoader.h"
+//
 int ConstantBufferPerObjectAlignedSize = (sizeof(ConstantBuffer) + 255) & ~255;
 DX12System* DX12System::dxInstance = 0;
 
@@ -409,123 +409,10 @@ bool DX12System::SetupResources()
 		return false;
 	}
 
-	// Load texture from file
-	D3D12_RESOURCE_DESC textureDesc;
-	int imageBytesPerRaw;
-	BYTE* imageData;
-	int imageSize = LoadImageDataFromFile(&imageData, textureDesc, L"Assets/Images/WoodGreen/Shingles_Wood_Stylized_001_baseColor.jpg", imageBytesPerRaw);
-	// Check if image exists
-	if (imageSize <= 0)
-	{
-		running = false;
-		return false;
-	}
-
-	// create default heap for texture
-	hr = device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-		D3D12_HEAP_FLAG_NONE, &textureDesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&textureBuffer)
-	);
-	if (FAILED(hr))
-	{
-		running = false;
-		return false;
-	}
-	textureBuffer->SetName(L"Texture buffer resource heap");
-
-	// get texture heap size which is 256 byte aligned
-	UINT64 textureUploadBufferSize;
-	device->GetCopyableFootprints(&textureDesc, 0, 1, 0, nullptr, nullptr, nullptr, &textureUploadBufferSize);
-
-	// create upload heap for texture
-	hr = device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), D3D12_HEAP_FLAG_NONE,
-		&CD3DX12_RESOURCE_DESC::Buffer(textureUploadBufferSize), D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
-		IID_PPV_ARGS(&textureBufferUploadHeap));
-	if (FAILED(hr))
-	{
-		running = false;
-		return false;
-	}
-	textureBufferUploadHeap->SetName(L"Texture Buffer Upload Resource Heap");
-
-	// store data in upload heap
-	D3D12_SUBRESOURCE_DATA textureData = {};
-	textureData.pData = &imageData[0];
-	textureData.RowPitch = imageBytesPerRaw;
-	textureData.SlicePitch = imageBytesPerRaw * textureDesc.Height;
-
-	// copy contents to default heap
-	UpdateSubresources(commandList, textureBuffer, textureBufferUploadHeap, 0, 0, 1, &textureData);
-
-	// transition the texture from default heap to pixel shader
-	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(textureBuffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-
-	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
-	heapDesc.NumDescriptors = 1;
-	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	hr = device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&mainDescriptorHeap));
-	if (FAILED(hr))
-	{
-		running = false;
-	}
-
-	// SRV descriptor
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.Format = textureDesc.Format;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Texture2D.MipLevels = 1;
-	deferredRenderer->SetSRV(textureBuffer, textureDesc.Format, 0);
-
-	imageSize = LoadImageDataFromFile(&imageData, textureDesc, L"Assets/Images/WoodGreen/Shingles_Wood_Stylized_001_normal.jpg", imageBytesPerRaw);
-	// Check if image exists
-	if (imageSize <= 0)
-	{
-		running = false;
-		return false;
-	}
-
-	// create default heap for texture
-	hr = device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-		D3D12_HEAP_FLAG_NONE, &textureDesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&normalTexBuffer)
-	);
-	if (FAILED(hr))
-	{
-		running = false;
-		return false;
-	}
-	textureBuffer->SetName(L"Normal Texture buffer resource heap");
-
-	// get texture heap size which is 256 byte aligned
-	//UINT64 textureUploadBufferSize;
-	device->GetCopyableFootprints(&textureDesc, 0, 1, 0, nullptr, nullptr, nullptr, &textureUploadBufferSize);
-
-	// create upload heap for texture
-	hr = device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), D3D12_HEAP_FLAG_NONE,
-		&CD3DX12_RESOURCE_DESC::Buffer(textureUploadBufferSize), D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
-		IID_PPV_ARGS(&textureBufferUploadHeap));
-	if (FAILED(hr))
-	{
-		running = false;
-		return false;
-	}
-	textureBufferUploadHeap->SetName(L"Texture Buffer Upload Resource Heap");
-
-	// store data in upload heap
-	//D3D12_SUBRESOURCE_DATA textureData = {};
-	textureData.pData = &imageData[0];
-	textureData.RowPitch = imageBytesPerRaw;
-	textureData.SlicePitch = imageBytesPerRaw * textureDesc.Height;
-
-	// copy contents to default heap
-	UpdateSubresources(commandList, normalTexBuffer, textureBufferUploadHeap, 0, 0, 1, &textureData);
-
-	// transition the texture from default heap to pixel shader
-	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(normalTexBuffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-
-	deferredRenderer->SetSRV(normalTexBuffer, textureDesc.Format, 1);
-
-	//device->CreateShaderResourceView(textureBuffer, &srvDesc, mainDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+	texture = new Texture(L"Assets/Images/WoodGreen/Shingles_Wood_Stylized_001_baseColor.jpg",device, commandList);
+	normalTexture = new Texture(L"Assets/Images/WoodGreen/Shingles_Wood_Stylized_001_normal.jpg", device, commandList);
+	deferredRenderer->SetSRV(texture->GetTexture(), texture->GetFormat(), 0);
+	deferredRenderer->SetSRV(normalTexture->GetTexture(), normalTexture->GetFormat(), 1);
 	
 	mesh = new Mesh("Assets/Models/sphere.obj", device, commandList);
 	// Create depth stencil
@@ -609,7 +496,7 @@ bool DX12System::SetupResources()
 	}
 
 	// clear memory of image
-	delete imageData;
+//	delete imageData;
 
 	// Viewport
 	viewport.TopLeftX = 0;
@@ -856,6 +743,8 @@ void DX12System::Cleanup()
 		SAFE_RELEASE(constantBufferUploadHeap[i]);
 	};
 
+	SAFE_RELEASE(textureBuffer);
+	SAFE_RELEASE(normalTexBuffer);
 	delete deferredRenderer;
 }
 

@@ -7,6 +7,7 @@
 #include "Camera.h"
 #include "Lights.h"
 #include "DefferedRenderer.h"
+#include "../Texture.h"
 
 #ifndef BUFFERCOUNT
 #define BUFFERCOUNT 3
@@ -101,6 +102,8 @@ public:
 	ID3D12Resource* normalTexBuffer;
 	ID3D12DescriptorHeap* mainDescriptorHeap;
 	ID3D12Resource* textureBufferUploadHeap;
+	Texture* texture;
+	Texture* normalTexture;
 
 	DefferedRenderer* deferredRenderer;
 

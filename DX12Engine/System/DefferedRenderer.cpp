@@ -418,7 +418,7 @@ void DefferedRenderer::Render(ID3D12GraphicsCommandList * commandList)
 	XMMATRIX viewMat = XMLoadFloat4x4(&camera->GetViewMatrix());					// load view matrix
 	XMMATRIX projMat = XMLoadFloat4x4(&camera->GetProjectionMatrix());				// load projection matrix
 	XMMATRIX wvpMat = XMLoadFloat4x4(&gameObj->GetWorldMatrix()) * viewMat * projMat; // create wvp matrix
-	XMStoreFloat4x4(&cbPerObj.worldViewProjectionMatrix, wvpMat);	// store transposed wvp matrix in constant buffer
+	XMStoreFloat4x4(&cbPerObj.worldViewProjectionMatrix, XMMatrixTranspose( wvpMat));	// store transposed wvp matrix in constant buffer
 	XMStoreFloat4x4(&cbPerObj.worldMatrix, XMLoadFloat4x4(&gameObj->GetWorldMatrix()));	// store transposed world matrix in constant buffer
 
 	memcpy(constantBufferGPUAddress, &cbPerObj, sizeof(ConstantBuffer));

@@ -571,6 +571,7 @@ void DX12System::Update()
 	//XMStoreFloat4x4(&constantBufferPerObject.worldViewProjectionMatrix, wvpMat);// store transposed wvp matrix in constant buffer
 	//// copy our ConstantBuffer instance to the mapped constant buffer resource
 	//memcpy(constantBufferGPUAddress[frameIndex] + ConstantBufferPerObjectAlignedSize, &constantBufferPerObject, sizeof(constantBufferPerObject));
+	camera->Update();
 	cube1->UpdateWorldMatrix();
 	cube2->UpdateWorldMatrix();
 }

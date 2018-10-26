@@ -558,14 +558,14 @@ void DX12System::Update()
 {
 	//// update constant buffer for cube1
 	//// create the wvp matrix and store in constant buffer
-	XMMATRIX viewMat = XMLoadFloat4x4(&camera->GetViewMatrix());					// load view matrix
-	XMMATRIX projMat = XMLoadFloat4x4(&camera->GetProjectionMatrix());				// load projection matrix
-	XMMATRIX wvpMat = XMLoadFloat4x4(&cube1->GetWorldMatrix()) * viewMat * projMat; // create wvp matrix
-	XMStoreFloat4x4(&constantBufferPerObject.worldViewProjectionMatrix, wvpMat);	// store transposed wvp matrix in constant buffer
-	XMStoreFloat4x4(&constantBufferPerObject.worldMatrix, XMLoadFloat4x4(&cube1->GetWorldMatrix()));	// store transposed world matrix in constant buffer
-	PSCBuffer.CamPos = DirectX::XMFLOAT4(camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z, 1.0);
-	// copy our ConstantBuffer instance to the mapped constant buffer resource
-	memcpy(constantBufferGPUAddress[frameIndex], &constantBufferPerObject, sizeof(constantBufferPerObject));
+	//XMMATRIX viewMat = XMLoadFloat4x4(&camera->GetViewMatrix());					// load view matrix
+	//XMMATRIX projMat = XMLoadFloat4x4(&camera->GetProjectionMatrix());				// load projection matrix
+	//XMMATRIX wvpMat = XMLoadFloat4x4(&cube1->GetWorldMatrix()) * viewMat * projMat; // create wvp matrix
+	//XMStoreFloat4x4(&constantBufferPerObject.worldViewProjectionMatrix, wvpMat);	// store transposed wvp matrix in constant buffer
+	//XMStoreFloat4x4(&constantBufferPerObject.worldMatrix, XMLoadFloat4x4(&cube1->GetWorldMatrix()));	// store transposed world matrix in constant buffer
+	//PSCBuffer.CamPos = DirectX::XMFLOAT4(camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z, 1.0);
+	//// copy our ConstantBuffer instance to the mapped constant buffer resource
+	//memcpy(constantBufferGPUAddress[frameIndex], &constantBufferPerObject, sizeof(constantBufferPerObject));
 
 	//wvpMat = XMLoadFloat4x4(&cube2->GetWorldMatrix()) * viewMat * projMat;			// create wvp matrix
 	//XMStoreFloat4x4(&constantBufferPerObject.worldViewProjectionMatrix, wvpMat);// store transposed wvp matrix in constant buffer

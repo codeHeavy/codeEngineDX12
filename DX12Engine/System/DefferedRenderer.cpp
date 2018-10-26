@@ -413,7 +413,7 @@ void DefferedRenderer::Render(ID3D12GraphicsCommandList * commandList)
 {
 	ID3D12DescriptorHeap* ppHeaps[] = { cbHeap.pDH.Get() };
 	commandList->SetDescriptorHeaps(1, ppHeaps);
-
+	auto a = gameObj->GetWorldMatrix();
 
 	XMMATRIX viewMat = XMLoadFloat4x4(&camera->GetViewMatrix());					// load view matrix
 	XMMATRIX projMat = XMLoadFloat4x4(&camera->GetProjectionMatrix());				// load projection matrix

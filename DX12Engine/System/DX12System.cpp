@@ -266,6 +266,7 @@ bool DX12System::InitD3D()
 //----------------------------------------------------------------------
 bool DX12System::SetupResources()
 {
+	DirectX::ResourceUploadBatch resourceUpload(device);
 	deferredRenderer = new DefferedRenderer(device, width, height);
 	deferredRenderer->Init(commandList);
 	HRESULT hr;
@@ -408,15 +409,21 @@ bool DX12System::SetupResources()
 	{
 		return false;
 	}
-
+	
+	resourceUpload.Begin();
+	CreateWICTextureFromFile(device, resourceUpload, L"Assets/Images/MetalPlate/Metal_Plate_010_baseColor_A.jpg", &textureBuffer);
+	
 	texture = new Texture(L"Assets/Images/MetalPlate/Metal_Plate_010_baseColor_A.jpg",device, commandList);
 	normalTexture = new Texture(L"Assets/Images/MetalPlate/Metal_Plate_010_normal.jpg", device, commandList);
 	roughnessTexture = new Texture(L"Assets/Images/MetalPlate/Metal_Plate_010_roughness_A.jpg", device, commandList);
 	metalTexture = new Texture(L"Assets/Images/MetalPlate/Metal_Plate_010_metallic_A.jpg", device, commandList);
-	deferredRenderer->SetSRV(texture->GetTexture(), texture->GetFormat(), 0);
+	deferredRenderer->SetSRV(textureBuffer, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
 	deferredRenderer->SetSRV(normalTexture->GetTexture(), normalTexture->GetFormat(), 1);
 	deferredRenderer->SetSRV(roughnessTexture->GetTexture(), roughnessTexture->GetFormat(), 2);
 	deferredRenderer->SetSRV(metalTexture->GetTexture(), metalTexture->GetFormat(), 3);
+	
+	auto uploadOperation = resourceUpload.End(commandQueue);
+	uploadOperation.wait();
 	
 	mesh = new Mesh("Assets/Models/sphere.obj", device, commandList);
 	// Create depth stencil

@@ -8,6 +8,9 @@
 #include "Lights.h"
 #include "DefferedRenderer.h"
 #include "../Texture.h"
+#include "WICTextureLoader.h"
+#include "ResourceUploadBatch.h"
+#include "DirectXHelpers.h"
 
 #ifndef BUFFERCOUNT
 #define BUFFERCOUNT 3
@@ -97,6 +100,7 @@ public:
 
 	void BuildViewProjMatrix();
 
+	ID3D12Resource* textureBuffer;
 	Texture* texture;
 	Texture* normalTexture;
 	Texture* roughnessTexture;

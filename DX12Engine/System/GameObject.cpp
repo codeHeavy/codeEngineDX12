@@ -7,7 +7,7 @@ GameObject::GameObject(Mesh*  _mesh)
 	XMStoreFloat4x4(&worldMatrix, XMMatrixTranspose(W));
 
 	position = XMFLOAT3(0, 0, 0);
-	rotation = XMFLOAT3(0, 0, 0);
+	rotation = XMFLOAT3(1, 1, 1);
 	scale = XMFLOAT3(1, 1, 1);
 }
 

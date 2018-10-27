@@ -32,7 +32,10 @@ public:
 	XMFLOAT3 GetDirection();
 	XMFLOAT3 GetUp();
 
+	void Rotate(float x, float y);
+
 	void Update();
+	void Update(float deltaTime);
 	void UpdateProjectionMatrix(int width, int height);
 };
 

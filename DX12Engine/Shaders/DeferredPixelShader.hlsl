@@ -1,3 +1,4 @@
+//#include "Lighting.hlsli"
 
 Texture2D t1 : register(t0);
 Texture2D normalTexture : register(t1);

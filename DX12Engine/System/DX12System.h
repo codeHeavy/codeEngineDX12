@@ -11,6 +11,7 @@
 #include "WICTextureLoader.h"
 #include "ResourceUploadBatch.h"
 #include "DirectXHelpers.h"
+#include "Windowsx.h"
 
 #ifndef BUFFERCOUNT
 #define BUFFERCOUNT 3
@@ -46,8 +47,15 @@ public:
 
 	void UpdateLoop();
 
+	static LRESULT CALLBACK WindowProc(
+		HWND hWnd,		// Window handle
+		UINT uMsg,		// Message
+		WPARAM wParam,	// Message's first parameter
+		LPARAM lParam	// Message's second parameter
+	);
+
 	// Callback to handle windows messges
-	static LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+	LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 	// Direct X 12 Setup
 	ID3D12CommandQueue* commandQueue;							// Command list container
@@ -108,9 +116,30 @@ public:
 
 	DefferedRenderer* deferredRenderer;
 
+	double perfCounterSeconds;
+	float totalTime;
+	float deltaTime;
+	__int64 startTime;
+	__int64 currentTime;
+	__int64 previousTime;
+
+	// FPS calculation
+	int fpsFrameCount;
+	float fpsTimeElapsed;
+	void UpdateTimer();
+
 	Camera* camera;
 	Mesh* mesh;
 	GameObject* cube1;
 	GameObject* cube2;
 	PSConstantBuffer PSCBuffer;
+
+	// Convenience methods for handling mouse input, since we
+	// can easily grab mouse input from OS-level messages
+	void OnMouseDown	(WPARAM buttonState, int x, int y);
+	void OnMouseUp	(WPARAM buttonState, int x, int y);
+	void OnMouseMove	(WPARAM buttonState, int x, int y);
+	void OnMouseWheel(float wheelDelta, int x, int y);
+	POINT prevMousePos;
+	
 };

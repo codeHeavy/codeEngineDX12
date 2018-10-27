@@ -4,6 +4,11 @@
 int ConstantBufferPerObjectAlignedSize = (sizeof(ConstantBuffer) + 255) & ~255;
 DX12System* DX12System::dxInstance = 0;
 
+LRESULT DX12System::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	return dxInstance->WndProc(hWnd, uMsg, wParam, lParam);
+}
+
 DX12System* DX12System::GetInstance()
 {
 	if (!dxInstance)
@@ -41,7 +46,7 @@ bool DX12System::InitWindow(HINSTANCE hInstance, int showWnd, int _width, int _h
 
 	wndClass.cbSize = sizeof(WNDCLASSEX);
 	wndClass.style = CS_HREDRAW | CS_VREDRAW;;
-	wndClass.lpfnWndProc = DX12System::WndProc;
+	wndClass.lpfnWndProc = DX12System::WindowProc;
 	wndClass.cbClsExtra = NULL;
 	wndClass.cbWndExtra = NULL;
 	wndClass.hInstance = hInstance;
@@ -80,6 +85,12 @@ bool DX12System::InitWindow(HINSTANCE hInstance, int showWnd, int _width, int _h
 // Window update loop
 void DX12System::UpdateLoop()
 {
+	__int64 now;
+	QueryPerformanceCounter((LARGE_INTEGER*)&now);
+	startTime = now;
+	currentTime = now;
+	previousTime = now;
+
 	MSG msg;
 	ZeroMemory(&msg, sizeof(MSG));
 
@@ -97,6 +108,7 @@ void DX12System::UpdateLoop()
 		}
 		else
 		{
+			UpdateTimer();
 			// Game code
 			Update();
 			Render();
@@ -266,6 +278,13 @@ bool DX12System::InitD3D()
 //----------------------------------------------------------------------
 bool DX12System::SetupResources()
 {
+	fpsFrameCount = 0;
+	fpsTimeElapsed = 0.0f;
+
+	__int64 perfFreq;
+	QueryPerformanceFrequency((LARGE_INTEGER*)&perfFreq);
+	perfCounterSeconds = 1.0 / (double)perfFreq;
+
 	DirectX::ResourceUploadBatch resourceUpload(device);
 	deferredRenderer = new DefferedRenderer(device, width, height);
 	deferredRenderer->Init(commandList);
@@ -556,22 +575,7 @@ void DX12System::BuildViewProjMatrix()
 //----------------------------------------------------------------------
 void DX12System::Update()
 {
-	//// update constant buffer for cube1
-	//// create the wvp matrix and store in constant buffer
-	//XMMATRIX viewMat = XMLoadFloat4x4(&camera->GetViewMatrix());					// load view matrix
-	//XMMATRIX projMat = XMLoadFloat4x4(&camera->GetProjectionMatrix());				// load projection matrix
-	//XMMATRIX wvpMat = XMLoadFloat4x4(&cube1->GetWorldMatrix()) * viewMat * projMat; // create wvp matrix
-	//XMStoreFloat4x4(&constantBufferPerObject.worldViewProjectionMatrix, wvpMat);	// store transposed wvp matrix in constant buffer
-	//XMStoreFloat4x4(&constantBufferPerObject.worldMatrix, XMLoadFloat4x4(&cube1->GetWorldMatrix()));	// store transposed world matrix in constant buffer
-	//PSCBuffer.CamPos = DirectX::XMFLOAT4(camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z, 1.0);
-	//// copy our ConstantBuffer instance to the mapped constant buffer resource
-	//memcpy(constantBufferGPUAddress[frameIndex], &constantBufferPerObject, sizeof(constantBufferPerObject));
-
-	//wvpMat = XMLoadFloat4x4(&cube2->GetWorldMatrix()) * viewMat * projMat;			// create wvp matrix
-	//XMStoreFloat4x4(&constantBufferPerObject.worldViewProjectionMatrix, wvpMat);// store transposed wvp matrix in constant buffer
-	//// copy our ConstantBuffer instance to the mapped constant buffer resource
-	//memcpy(constantBufferGPUAddress[frameIndex] + ConstantBufferPerObjectAlignedSize, &constantBufferPerObject, sizeof(constantBufferPerObject));
-	camera->Update();
+	camera->Update(deltaTime);
 	cube1->UpdateWorldMatrix();
 	cube2->UpdateWorldMatrix();
 }
@@ -757,6 +761,42 @@ void DX12System::WaitForPreviousFrame()
 	fenceValue[frameIndex]++;
 }
 
+void DX12System::OnMouseDown(WPARAM buttonState, int x, int y)
+{
+	// Save the previous mouse position, so we have it for the future
+	prevMousePos.x = x;
+	prevMousePos.y = y;
+
+	// Caputure the mouse so we keep getting mouse move
+	// events even if the mouse leaves the window.  we'll be
+	// releasing the capture once a mouse button is released
+	SetCapture(hwnd);
+}
+void DX12System::OnMouseUp(WPARAM buttonState, int x, int y)
+{
+	// We don't care about the tracking the cursor outside
+	// the window anymore (we're not dragging if the mouse is up)
+	ReleaseCapture();
+}
+void DX12System::OnMouseMove(WPARAM buttonState, int x, int y)
+{
+	// Check left mouse button
+	if (buttonState & 0x0001)
+	{
+		float xDiff = (x - prevMousePos.x) * 0.005f;
+		float yDiff = (y - prevMousePos.y) * 0.005f;
+		camera->Rotate(xDiff, yDiff);
+	}
+
+	// Save the previous mouse position, so we have it for the future
+	prevMousePos.x = x;
+	prevMousePos.y = y;
+}
+void DX12System::OnMouseWheel(float wheelDelta, int x, int y)
+{
+
+}
+
 //----------------------------------------------------------------------
 // Windows messages callback
 //----------------------------------------------------------------------
@@ -776,6 +816,42 @@ LRESULT DX12System::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_DESTROY:
 			PostQuitMessage(0);
 			return 0;
+			// Mouse button being pressed (while the cursor is currently over our window)
+		case WM_LBUTTONDOWN:
+		case WM_MBUTTONDOWN:
+		case WM_RBUTTONDOWN:
+			OnMouseDown( wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			return 0;
+
+			// Mouse button being released (while the cursor is currently over our window)
+		case WM_LBUTTONUP:
+		case WM_MBUTTONUP:
+		case WM_RBUTTONUP:
+			OnMouseUp( wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			return 0;
+
+			// Cursor moves over the window (or outside, while we're currently capturing it)
+		case WM_MOUSEMOVE:
+			OnMouseMove( wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			return 0;
+
+			// Mouse wheel is scrolled
+		case WM_MOUSEWHEEL:
+			OnMouseWheel( GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			return 0;
 		}
-		return DefWindowProc(hWnd, msg, wParam, lParam);
+		return DefWindowProc( hWnd, msg, wParam, lParam);
+}
+
+
+
+void DX12System::UpdateTimer()
+{
+	__int64 now;
+	QueryPerformanceCounter((LARGE_INTEGER*)&now);
+	currentTime = now;
+
+	deltaTime = max((float)((currentTime - previousTime) * perfCounterSeconds), 0.0f);
+	totalTime = (float)((currentTime - startTime) * perfCounterSeconds);
+	previousTime = currentTime;
 }

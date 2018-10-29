@@ -273,11 +273,50 @@ bool DX12System::InitD3D()
 	return true;
 }
 
+void DX12System::Loadtextures()
+{
+	albedoList.push_back	(new Texture(L"Assets/Images/Textures/scratched_albedo.png", device, commandList));
+	normalList.push_back	(new Texture(L"Assets/Images/Textures/scratched_normals.png", device, commandList));
+	roughnessList.push_back	(new Texture(L"Assets/Images/Textures/scratched_roughness.png", device, commandList));
+	metalList.push_back		(new Texture(L"Assets/Images/Textures/scratched_metal.png", device, commandList));
+
+	albedoList.push_back	(new Texture(L"Assets/Images/Textures/cobblestone_albedo.png", device, commandList));
+	normalList.push_back	(new Texture(L"Assets/Images/Textures/cobblestone_normals.png", device, commandList));
+	roughnessList.push_back	(new Texture(L"Assets/Images/Textures/cobblestone_roughness.png", device, commandList));
+	metalList.push_back		(new Texture(L"Assets/Images/Textures/cobblestone_metal.png", device, commandList));
+
+	albedoList.push_back	(new Texture(L"Assets/Images/Textures/floor_albedo.png", device, commandList));
+	normalList.push_back	(new Texture(L"Assets/Images/Textures/floor_normals.png", device, commandList));
+	roughnessList.push_back	(new Texture(L"Assets/Images/Textures/floor_roughness.png", device, commandList));
+	metalList.push_back		(new Texture(L"Assets/Images/Textures/floor_metal.png", device, commandList));
+
+	albedoList.push_back	(new Texture(L"Assets/Images/Textures/paint_albedo.png", device, commandList));
+	normalList.push_back	(new Texture(L"Assets/Images/Textures/paint_normals.png", device, commandList));
+	roughnessList.push_back	(new Texture(L"Assets/Images/Textures/paint_roughness.png", device, commandList));
+	metalList.push_back		(new Texture(L"Assets/Images/Textures/paint_metal.png", device, commandList));
+
+	albedoList.push_back	(new Texture(L"Assets/Images/Textures/bronze_albedo.png", device, commandList));
+	normalList.push_back	(new Texture(L"Assets/Images/Textures/bronze_normals.png", device, commandList));
+	roughnessList.push_back	(new Texture(L"Assets/Images/Textures/bronze_roughness.png", device, commandList));
+	metalList.push_back		(new Texture(L"Assets/Images/Textures/bronze_metal.png", device, commandList));
+
+	albedoList.push_back	(new Texture(L"Assets/Images/Textures/rough_albedo.png", device, commandList));
+	normalList.push_back	(new Texture(L"Assets/Images/Textures/rough_normals.png", device, commandList));
+	roughnessList.push_back	(new Texture(L"Assets/Images/Textures/rough_roughness.png", device, commandList));
+	metalList.push_back		(new Texture(L"Assets/Images/Textures/rough_metal.png", device, commandList));
+
+	albedoList.push_back	(new Texture(L"Assets/Images/Textures/wood_albedo.png", device, commandList));
+	normalList.push_back	(new Texture(L"Assets/Images/Textures/wood_normals.png", device, commandList));
+	roughnessList.push_back	(new Texture(L"Assets/Images/Textures/wood_roughness.png", device, commandList));
+	metalList.push_back		(new Texture(L"Assets/Images/Textures/wood_metal.png", device, commandList));
+}
+
 //----------------------------------------------------------------------
 //	Setup the initial values for resources
 //----------------------------------------------------------------------
 bool DX12System::SetupResources()
 {
+	Loadtextures();
 	fpsFrameCount = 0;
 	fpsTimeElapsed = 0.0f;
 
@@ -432,14 +471,15 @@ bool DX12System::SetupResources()
 	resourceUpload.Begin();
 	CreateWICTextureFromFile(device, resourceUpload, L"Assets/Images/MetalPlate/Metal_Plate_010_baseColor_A.jpg", &textureBuffer);
 	
-	texture = new Texture(L"Assets/Images/MetalPlate/Metal_Plate_010_baseColor_A.jpg",device, commandList);
-	normalTexture = new Texture(L"Assets/Images/MetalPlate/Metal_Plate_010_normal.jpg", device, commandList);
-	roughnessTexture = new Texture(L"Assets/Images/MetalPlate/Metal_Plate_010_roughness_A.jpg", device, commandList);
-	metalTexture = new Texture(L"Assets/Images/MetalPlate/Metal_Plate_010_metallic_A.jpg", device, commandList);
-	deferredRenderer->SetSRV(textureBuffer, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
-	deferredRenderer->SetSRV(normalTexture->GetTexture(), normalTexture->GetFormat(), 1);
-	deferredRenderer->SetSRV(roughnessTexture->GetTexture(), roughnessTexture->GetFormat(), 2);
-	deferredRenderer->SetSRV(metalTexture->GetTexture(), metalTexture->GetFormat(), 3);
+	//texture				=	new Texture(L"Assets/Images/Textures/scratched_albedo.png"		, device, commandList);
+	//normalTexture		=	new Texture(L"Assets/Images/Textures/scratched_normals.png"		, device, commandList);
+	//roughnessTexture	=	new Texture(L"Assets/Images/Textures/scratched_roughness.png"	, device, commandList);
+	//metalTexture		=	new Texture(L"Assets/Images/Textures/scratched_metal.png"		, device, commandList);
+	//deferredRenderer->SetSRV(textureBuffer, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+	deferredRenderer->SetSRV(albedoList[0]->GetTexture(), albedoList[0]->GetFormat(), 0);
+	deferredRenderer->SetSRV(normalList[0]->GetTexture(), normalList[0]->GetFormat(), 1);
+	deferredRenderer->SetSRV(roughnessList[0]->GetTexture(), roughnessList[0]->GetFormat(), 2);
+	deferredRenderer->SetSRV(metalList[0]->GetTexture(), metalList[0]->GetFormat(), 3);
 	
 	auto uploadOperation = resourceUpload.End(commandQueue);
 	uploadOperation.wait();
@@ -481,10 +521,10 @@ bool DX12System::SetupResources()
 
 	// Set lights
 	PSCBuffer.light.AmbientColor = XMFLOAT4(0.1, 0.1, 0.1, 1.0);
-	PSCBuffer.light.DiffuseColor = XMFLOAT4(1, 0, 0, 1);
+	PSCBuffer.light.DiffuseColor = XMFLOAT4(1, 1, 1, 1);
 	PSCBuffer.light.Direction = XMFLOAT3(1, -1, 0);
 
-	PSCBuffer.pLight.Color = XMFLOAT4(0, 0, 1, 1);
+	PSCBuffer.pLight.Color = XMFLOAT4(1, 1, 1, 1);
 	PSCBuffer.pLight.Position = XMFLOAT3(0.5, 0.5, 0.0);
 
 	// create constant buffer resource heap
@@ -568,13 +608,47 @@ void DX12System::BuildViewProjMatrix()
 	
 	cube1->UpdateWorldMatrix();
 	cube2->UpdateWorldMatrix();
+	
 }
 
+bool DX12System::KeyDown(int key)
+{
+	return keys[key] & 0x80;
+}
+
+bool DX12System::KeyPressed(int key)
+{
+	return (keys[key] & 0x80) && !(prevKeys[key] & 0x80);
+}
+
+bool DX12System::KeyReleased(int key)
+{
+	return !(keys[key] & 0x80) && (prevKeys[key] & 0x80);
+}
+
+
+int index = 0;
 //----------------------------------------------------------------------
 //	Update
 //----------------------------------------------------------------------
 void DX12System::Update()
 {
+	// Save old keys and grab new ones
+	memcpy(prevKeys, keys, sizeof(keys));
+	GetKeyboardState(keys);
+
+	if (KeyPressed(VK_TAB))
+	{
+		++index;
+		if (index > albedoList.size())
+		{
+			index = 0;
+		}
+		deferredRenderer->SetSRV(albedoList[index]->GetTexture(), albedoList[0]->GetFormat(), 0);
+		deferredRenderer->SetSRV(normalList[index]->GetTexture(), normalList[0]->GetFormat(), 1);
+		deferredRenderer->SetSRV(roughnessList[index]->GetTexture(), roughnessList[0]->GetFormat(), 2);
+		deferredRenderer->SetSRV(metalList[index]->GetTexture(), metalList[0]->GetFormat(), 3);
+	}
 	camera->Update(deltaTime);
 	cube1->UpdateWorldMatrix();
 	cube2->UpdateWorldMatrix();

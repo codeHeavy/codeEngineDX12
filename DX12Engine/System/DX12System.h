@@ -141,5 +141,18 @@ public:
 	void OnMouseMove	(WPARAM buttonState, int x, int y);
 	void OnMouseWheel(float wheelDelta, int x, int y);
 	POINT prevMousePos;
-	
+
+	// Input and mesh swapping
+	byte keys[256];
+	byte prevKeys[256];
+
+	void Loadtextures();
+	std::vector<Texture*> albedoList;
+	std::vector<Texture*> normalList;
+	std::vector<Texture*> roughnessList;
+	std::vector<Texture*> metalList;
+
+	bool KeyDown(int key);
+	bool KeyPressed(int key);
+	bool KeyReleased(int key);
 };

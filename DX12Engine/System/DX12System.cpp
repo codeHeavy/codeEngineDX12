@@ -309,6 +309,16 @@ void DX12System::Loadtextures()
 	normalList.push_back	(new Texture(L"Assets/Images/Textures/wood_normals.png", device, commandList));
 	roughnessList.push_back	(new Texture(L"Assets/Images/Textures/wood_roughness.png", device, commandList));
 	metalList.push_back		(new Texture(L"Assets/Images/Textures/wood_metal.png", device, commandList));
+
+	int index = 0;
+	for (int i = 0; i < albedoList.size(); i++)
+	{
+		deferredRenderer->SetSRV(albedoList[i]->GetTexture(), albedoList[i]->GetFormat(), index);
+		deferredRenderer->SetSRV(normalList[i]->GetTexture(), normalList[i]->GetFormat(), ++index);
+		deferredRenderer->SetSRV(roughnessList[i]->GetTexture(), roughnessList[i]->GetFormat(), ++index);
+		deferredRenderer->SetSRV(metalList[i]->GetTexture(), metalList[i]->GetFormat(), ++index);
+		++index;
+	}
 }
 
 //----------------------------------------------------------------------
@@ -316,7 +326,6 @@ void DX12System::Loadtextures()
 //----------------------------------------------------------------------
 bool DX12System::SetupResources()
 {
-	Loadtextures();
 	fpsFrameCount = 0;
 	fpsTimeElapsed = 0.0f;
 
@@ -327,6 +336,7 @@ bool DX12System::SetupResources()
 	DirectX::ResourceUploadBatch resourceUpload(device);
 	deferredRenderer = new DefferedRenderer(device, width, height);
 	deferredRenderer->Init(commandList);
+	Loadtextures();
 	HRESULT hr;
 
 	// descriptor range table = range of descriptors inside the descriptor heap
@@ -627,7 +637,6 @@ bool DX12System::KeyReleased(int key)
 }
 
 
-int index = 0;
 //----------------------------------------------------------------------
 //	Update
 //----------------------------------------------------------------------
@@ -639,15 +648,12 @@ void DX12System::Update()
 
 	if (KeyPressed(VK_TAB))
 	{
-		++index;
-		if (index > albedoList.size())
+		textureIndex += 4;
+		if (textureIndex > albedoList.size()*4)
 		{
-			index = 0;
+			textureIndex = 0;
 		}
-		deferredRenderer->SetSRV(albedoList[index]->GetTexture(), albedoList[0]->GetFormat(), 0);
-		deferredRenderer->SetSRV(normalList[index]->GetTexture(), normalList[0]->GetFormat(), 1);
-		deferredRenderer->SetSRV(roughnessList[index]->GetTexture(), roughnessList[0]->GetFormat(), 2);
-		deferredRenderer->SetSRV(metalList[index]->GetTexture(), metalList[0]->GetFormat(), 3);
+
 	}
 	camera->Update(deltaTime);
 	cube1->UpdateWorldMatrix();
@@ -725,7 +731,7 @@ void DX12System::Draw()
 	
 	//--------------------Deferred Rendering-----------------------
 
-	deferredRenderer->ApplyGBufferPSO(commandList,true, cube1, camera,PSCBuffer);
+	deferredRenderer->ApplyGBufferPSO(commandList,true, cube1, camera,PSCBuffer,textureIndex);
 	deferredRenderer->Render(commandList);
 	
 	deferredRenderer->ApplyLightingShapePSO(commandList, true,PSCBuffer);
@@ -866,6 +872,7 @@ void DX12System::OnMouseMove(WPARAM buttonState, int x, int y)
 	prevMousePos.x = x;
 	prevMousePos.y = y;
 }
+
 void DX12System::OnMouseWheel(float wheelDelta, int x, int y)
 {
 

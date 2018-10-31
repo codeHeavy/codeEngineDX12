@@ -72,7 +72,7 @@ public:
 	~DefferedRenderer();
 
 	void Init(ID3D12GraphicsCommandList* command);
-	void ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool bSetPSO, GameObject* gameObj, Camera* camera, const PSConstantBuffer& pixelCb);
+	void ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool bSetPSO, GameObject* gameObj, Camera* camera, const PSConstantBuffer& pixelCb,int textureIndex);
 	void ApplyLightingPSO(ID3D12GraphicsCommandList * command, bool bSetPSO, const PSConstantBuffer& pixelCb);
 	void ApplyLightingShapePSO(ID3D12GraphicsCommandList * command, bool bSetPSO, const PSConstantBuffer& pixelCb);
 	void Render(ID3D12GraphicsCommandList * command);

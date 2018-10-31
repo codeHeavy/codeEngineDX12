@@ -349,7 +349,7 @@ void DefferedRenderer::CreateDSV()
 	device->CreateShaderResourceView(depthStencilTexture, &descSRV, cbvsrvHeap.hCPU(6));
 }
 
-void DefferedRenderer::ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool bSetPSO, GameObject* _gameObj, Camera* _camera, const PSConstantBuffer& pixelCb)
+void DefferedRenderer::ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool bSetPSO, GameObject* _gameObj, Camera* _camera, const PSConstantBuffer& pixelCb,int textureIndex)
 {
 	ID3D12DescriptorHeap* ppHeaps[] = { srvHeap.pDH.Get() };
 	gameObj = _gameObj;
@@ -364,7 +364,7 @@ void DefferedRenderer::ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool
 	command->OMSetRenderTargets(numRTV, &rtvHeap.hCPUHeapStart, true, &dsvHeap.hCPUHeapStart);
 	command->SetDescriptorHeaps(1, ppHeaps);
 	command->SetGraphicsRootSignature(rootSignature);
-	command->SetGraphicsRootDescriptorTable(2, srvHeap.hGPU(0));
+	command->SetGraphicsRootDescriptorTable(2, srvHeap.hGPU(textureIndex));
 
 	ID3D12DescriptorHeap* ppHeap2[] = { pcbHeap.pDH.Get() };
 	command->SetDescriptorHeaps(1, ppHeap2);

@@ -155,4 +155,5 @@ public:
 	bool KeyDown(int key);
 	bool KeyPressed(int key);
 	bool KeyReleased(int key);
+	int textureIndex = 0;
 };

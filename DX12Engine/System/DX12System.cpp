@@ -859,7 +859,7 @@ void DX12System::OnMouseMove(WPARAM buttonState, int x, int y)
 	{
 		float xDiff = (x - prevMousePos.x) * 0.005f;
 		float yDiff = (y - prevMousePos.y) * 0.005f;
-		camera->Rotate(xDiff, yDiff);
+		camera->Rotate(yDiff, xDiff);
 	}
 
 	// Save the previous mouse position, so we have it for the future

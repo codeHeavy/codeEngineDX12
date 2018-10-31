@@ -10,6 +10,7 @@ private:
 
 	XMFLOAT3 position;
 	XMFLOAT3 direction;
+	XMFLOAT4 rotation;
 	XMFLOAT3 up;
 
 	float rotationX;
@@ -32,10 +33,13 @@ public:
 	XMFLOAT3 GetDirection();
 	XMFLOAT3 GetUp();
 
-	void Rotate(float x, float y);
-
 	void Update();
 	void Update(float deltaTime);
 	void UpdateProjectionMatrix(int width, int height);
+
+	// Transformations
+	void MoveRelative(float x, float y, float z);
+	void MoveAbsolute(float x, float y, float z);
+	void Rotate(float x, float y);
 };
 

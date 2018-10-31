@@ -275,40 +275,40 @@ bool DX12System::InitD3D()
 
 void DX12System::Loadtextures()
 {
-	albedoList.push_back	(new Texture(L"Assets/Images/Textures/scratched_albedo.png", device, commandList));
-	normalList.push_back	(new Texture(L"Assets/Images/Textures/scratched_normals.png", device, commandList));
-	roughnessList.push_back	(new Texture(L"Assets/Images/Textures/scratched_roughness.png", device, commandList));
-	metalList.push_back		(new Texture(L"Assets/Images/Textures/scratched_metal.png", device, commandList));
+	albedoList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/scratched_albedo.png", device, commandList));
+	normalList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/scratched_normals.png", device, commandList));
+	roughnessList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/scratched_roughness.png", device, commandList));
+	metalList.push_back		(std::make_unique<Texture>(L"Assets/Images/Textures/scratched_metal.png", device, commandList));
 
-	albedoList.push_back	(new Texture(L"Assets/Images/Textures/cobblestone_albedo.png", device, commandList));
-	normalList.push_back	(new Texture(L"Assets/Images/Textures/cobblestone_normals.png", device, commandList));
-	roughnessList.push_back	(new Texture(L"Assets/Images/Textures/cobblestone_roughness.png", device, commandList));
-	metalList.push_back		(new Texture(L"Assets/Images/Textures/cobblestone_metal.png", device, commandList));
+	albedoList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/cobblestone_albedo.png", device, commandList));
+	normalList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/cobblestone_normals.png", device, commandList));
+	roughnessList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/cobblestone_roughness.png", device, commandList));
+	metalList.push_back		(std::make_unique<Texture>(L"Assets/Images/Textures/cobblestone_metal.png", device, commandList));
 
-	albedoList.push_back	(new Texture(L"Assets/Images/Textures/floor_albedo.png", device, commandList));
-	normalList.push_back	(new Texture(L"Assets/Images/Textures/floor_normals.png", device, commandList));
-	roughnessList.push_back	(new Texture(L"Assets/Images/Textures/floor_roughness.png", device, commandList));
-	metalList.push_back		(new Texture(L"Assets/Images/Textures/floor_metal.png", device, commandList));
+	albedoList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/floor_albedo.png", device, commandList));
+	normalList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/floor_normals.png", device, commandList));
+	roughnessList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/floor_roughness.png", device, commandList));
+	metalList.push_back		(std::make_unique<Texture>(L"Assets/Images/Textures/floor_metal.png", device, commandList));
 
-	albedoList.push_back	(new Texture(L"Assets/Images/Textures/paint_albedo.png", device, commandList));
-	normalList.push_back	(new Texture(L"Assets/Images/Textures/paint_normals.png", device, commandList));
-	roughnessList.push_back	(new Texture(L"Assets/Images/Textures/paint_roughness.png", device, commandList));
-	metalList.push_back		(new Texture(L"Assets/Images/Textures/paint_metal.png", device, commandList));
+	albedoList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/paint_albedo.png", device, commandList));
+	normalList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/paint_normals.png", device, commandList));
+	roughnessList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/paint_roughness.png", device, commandList));
+	metalList.push_back		(std::make_unique<Texture>(L"Assets/Images/Textures/paint_metal.png", device, commandList));
 
-	albedoList.push_back	(new Texture(L"Assets/Images/Textures/bronze_albedo.png", device, commandList));
-	normalList.push_back	(new Texture(L"Assets/Images/Textures/bronze_normals.png", device, commandList));
-	roughnessList.push_back	(new Texture(L"Assets/Images/Textures/bronze_roughness.png", device, commandList));
-	metalList.push_back		(new Texture(L"Assets/Images/Textures/bronze_metal.png", device, commandList));
+	albedoList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/bronze_albedo.png", device, commandList));
+	normalList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/bronze_normals.png", device, commandList));
+	roughnessList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/bronze_roughness.png", device, commandList));
+	metalList.push_back		(std::make_unique<Texture>(L"Assets/Images/Textures/bronze_metal.png", device, commandList));
 
-	albedoList.push_back	(new Texture(L"Assets/Images/Textures/rough_albedo.png", device, commandList));
-	normalList.push_back	(new Texture(L"Assets/Images/Textures/rough_normals.png", device, commandList));
-	roughnessList.push_back	(new Texture(L"Assets/Images/Textures/rough_roughness.png", device, commandList));
-	metalList.push_back		(new Texture(L"Assets/Images/Textures/rough_metal.png", device, commandList));
+	albedoList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/rough_albedo.png", device, commandList));
+	normalList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/rough_normals.png", device, commandList));
+	roughnessList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/rough_roughness.png", device, commandList));
+	metalList.push_back		(std::make_unique<Texture>(L"Assets/Images/Textures/rough_metal.png", device, commandList));
 
-	albedoList.push_back	(new Texture(L"Assets/Images/Textures/wood_albedo.png", device, commandList));
-	normalList.push_back	(new Texture(L"Assets/Images/Textures/wood_normals.png", device, commandList));
-	roughnessList.push_back	(new Texture(L"Assets/Images/Textures/wood_roughness.png", device, commandList));
-	metalList.push_back		(new Texture(L"Assets/Images/Textures/wood_metal.png", device, commandList));
+	albedoList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/wood_albedo.png", device, commandList));
+	normalList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/wood_normals.png", device, commandList));
+	roughnessList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/wood_roughness.png", device, commandList));
+	metalList.push_back		(std::make_unique<Texture>(L"Assets/Images/Textures/wood_metal.png", device, commandList));
 
 	int index = 0;
 	for (int i = 0; i < albedoList.size(); i++)
@@ -808,11 +808,17 @@ void DX12System::Cleanup()
 		SAFE_RELEASE(constantBufferUploadHeap[i]);
 	};
 
+	SAFE_RELEASE(textureBuffer);
 	delete texture;
 	delete normalTexture;
 	delete roughnessTexture;
 	delete metalTexture;
 	delete deferredRenderer;
+
+	delete camera;
+	delete mesh;
+	delete cube1;
+	delete cube2;
 }
 
 //----------------------------------------------------------------------

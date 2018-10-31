@@ -33,8 +33,8 @@ public:
 
 	// Window handles
 	HWND hwnd = NULL;						// Windows handle
-	LPCWSTR windowName = L"DX12Engine";		// Window name
-	LPCWSTR windowTitle = L"DX12Engine";	// Window title
+	LPCWSTR windowName = L"codeEngineDX12";		// Window name
+	LPCWSTR windowTitle = L"codeEngineDX12";	// Window title
 
 	// Size of the window
 	int height = 600;
@@ -147,10 +147,10 @@ public:
 	byte prevKeys[256];
 
 	void Loadtextures();
-	std::vector<Texture*> albedoList;
-	std::vector<Texture*> normalList;
-	std::vector<Texture*> roughnessList;
-	std::vector<Texture*> metalList;
+	std::vector<std::unique_ptr<Texture>> albedoList;
+	std::vector<std::unique_ptr<Texture>> normalList;
+	std::vector<std::unique_ptr<Texture>> roughnessList;
+	std::vector<std::unique_ptr<Texture>> metalList;
 
 	bool KeyDown(int key);
 	bool KeyPressed(int key);

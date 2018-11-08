@@ -1,4 +1,4 @@
-//#include "Lighting.hlsli"
+//#include "../Header.hlsli"
 
 Texture2D t1 : register(t0);
 Texture2D normalTexture : register(t1);
@@ -15,7 +15,7 @@ struct VS_OUTPUT
 	float3 tangent : TANGENT;
 };
 
-float3 NormalMapping1(float2 uv, float3 normal, float3 tangent)
+float3 NormalMapping(float2 uv, float3 normal, float3 tangent)
 {
 	float3 normalFromTexture = normalTexture.Sample(s1, uv).xyz;
 	float3 unpackedNormal = normalFromTexture * 2.0f - 1.0f;
@@ -39,7 +39,7 @@ PS_Output main(VS_OUTPUT input) : SV_TARGET
 {
 	PS_Output output;
 	input.normal = normalize(input.normal);
-	float3 normal = NormalMapping1(input.texCoord, input.normal, input.tangent);
+	float3 normal = NormalMapping(input.texCoord, input.normal, input.tangent);
 	output.albedo = t1.Sample(s1, input.texCoord);
 	output.normal = float4(normalize(normal), 1.0f);
 	output.worldPos = float4(input.worldPos, 0.0f);

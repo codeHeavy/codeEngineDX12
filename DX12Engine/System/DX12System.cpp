@@ -1,5 +1,6 @@
 
 #include "DX12System.h"
+#include "DDSTextureLoader.h"
 //
 int ConstantBufferPerObjectAlignedSize = (sizeof(ConstantBuffer) + 255) & ~255;
 DX12System* DX12System::dxInstance = 0;
@@ -272,7 +273,7 @@ bool DX12System::InitD3D()
 
 	return true;
 }
-
+int index = 0;
 void DX12System::Loadtextures()
 {
 	albedoList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/scratched_albedo.png", device, commandList));
@@ -310,8 +311,8 @@ void DX12System::Loadtextures()
 	roughnessList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/wood_roughness.png", device, commandList));
 	metalList.push_back		(std::make_unique<Texture>(L"Assets/Images/Textures/wood_metal.png", device, commandList));
 
-	int index = 0;
-	for (int i = 0; i < albedoList.size(); i++)
+	int i;
+	for ( i = 0; i < albedoList.size(); i++)
 	{
 		deferredRenderer->SetSRV(albedoList[i]->GetTexture(), albedoList[i]->GetFormat(), index);
 		deferredRenderer->SetSRV(normalList[i]->GetTexture(), normalList[i]->GetFormat(), ++index);
@@ -319,6 +320,14 @@ void DX12System::Loadtextures()
 		deferredRenderer->SetSRV(metalList[i]->GetTexture(), metalList[i]->GetFormat(), ++index);
 		++index;
 	}
+
+	DirectX::ResourceUploadBatch resourceUpload(device);
+	resourceUpload.Begin();
+	//// Load the skybox texture from a DDS file
+	CreateDDSTextureFromFile(device, resourceUpload, L"Assets/Images/SunnyCubeMap.dds", &skyTextureBuffer);
+	auto uploadOperation = resourceUpload.End(commandQueue);
+	uploadOperation.wait();
+	deferredRenderer->SetCubeSRV(skyTextureBuffer, albedoList[0]->GetFormat(), index);
 }
 
 //----------------------------------------------------------------------
@@ -333,7 +342,7 @@ bool DX12System::SetupResources()
 	QueryPerformanceFrequency((LARGE_INTEGER*)&perfFreq);
 	perfCounterSeconds = 1.0 / (double)perfFreq;
 
-	DirectX::ResourceUploadBatch resourceUpload(device);
+
 	deferredRenderer = new DefferedRenderer(device, width, height);
 	deferredRenderer->Init(commandList);
 	Loadtextures();
@@ -478,23 +487,9 @@ bool DX12System::SetupResources()
 		return false;
 	}
 	
-	resourceUpload.Begin();
-	CreateWICTextureFromFile(device, resourceUpload, L"Assets/Images/MetalPlate/Metal_Plate_010_baseColor_A.jpg", &textureBuffer);
-	
-	//texture				=	new Texture(L"Assets/Images/Textures/scratched_albedo.png"		, device, commandList);
-	//normalTexture		=	new Texture(L"Assets/Images/Textures/scratched_normals.png"		, device, commandList);
-	//roughnessTexture	=	new Texture(L"Assets/Images/Textures/scratched_roughness.png"	, device, commandList);
-	//metalTexture		=	new Texture(L"Assets/Images/Textures/scratched_metal.png"		, device, commandList);
-	//deferredRenderer->SetSRV(textureBuffer, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
-	deferredRenderer->SetSRV(albedoList[0]->GetTexture(), albedoList[0]->GetFormat(), 0);
-	deferredRenderer->SetSRV(normalList[0]->GetTexture(), normalList[0]->GetFormat(), 1);
-	deferredRenderer->SetSRV(roughnessList[0]->GetTexture(), roughnessList[0]->GetFormat(), 2);
-	deferredRenderer->SetSRV(metalList[0]->GetTexture(), metalList[0]->GetFormat(), 3);
-	
-	auto uploadOperation = resourceUpload.End(commandQueue);
-	uploadOperation.wait();
 	
 	mesh = new Mesh("Assets/Models/sphere.obj", device, commandList);
+	
 	// Create depth stencil
 	// Create depth stencil descriptor heap
 	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
@@ -535,7 +530,8 @@ bool DX12System::SetupResources()
 	PSCBuffer.light.Direction = XMFLOAT3(1, -1, 0);
 
 	PSCBuffer.pLight.Color = XMFLOAT4(1, 1, 1, 1);
-	PSCBuffer.pLight.Position = XMFLOAT3(0.5, 0.5, 0.0);
+	PSCBuffer.pLight.Position = XMFLOAT3(-0.5, -0.5, 0.0);
+	PSCBuffer.pLight.Range = 10;
 
 	// create constant buffer resource heap
 	// Resource heaps must be multiples of 64KB of size
@@ -614,7 +610,7 @@ void DX12System::BuildViewProjMatrix()
 	
 	// second cube
 	cube2 = new GameObject(mesh);
-	cube2->SetPosition(XMFLOAT3(0.5f, 0.0f, 0.0f));
+	cube2->SetPosition(XMFLOAT3(0.5f, 0.5f, 0.0f));
 	
 	cube1->UpdateWorldMatrix();
 	cube2->UpdateWorldMatrix();
@@ -709,6 +705,8 @@ void DX12System::UpdatePipeline()
 
 	deferredRenderer->ApplyLightingPSO(commandList,true,PSCBuffer);
 	deferredRenderer->DrawLightPass(commandList);
+
+	deferredRenderer->RenderSkybox(commandList, rtvHandle, index);
 	// transition render target from render target state to curtrrent state
 	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTargets[frameIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
 	hr = commandList->Close();	// resets to recording state
@@ -808,7 +806,7 @@ void DX12System::Cleanup()
 		SAFE_RELEASE(constantBufferUploadHeap[i]);
 	};
 
-	SAFE_RELEASE(textureBuffer);
+	SAFE_RELEASE(skyTextureBuffer);
 	delete texture;
 	delete normalTexture;
 	delete roughnessTexture;

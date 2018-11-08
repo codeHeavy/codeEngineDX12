@@ -108,7 +108,7 @@ public:
 
 	void BuildViewProjMatrix();
 
-	ID3D12Resource* textureBuffer;
+	ID3D12Resource* skyTextureBuffer;
 	Texture* texture;
 	Texture* normalTexture;
 	Texture* roughnessTexture;

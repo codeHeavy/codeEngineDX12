@@ -22,6 +22,7 @@ private:
 	ID3D12PipelineState* pipelineStateObject;
 	ID3D12PipelineState* lightPassPSO;
 	ID3D12PipelineState* lightPassShapePSO;
+	ID3D12PipelineState* skyBoxPSO;
 
 	CDescriptorHeapWrapper cbvsrvHeap;
 	CDescriptorHeapWrapper dsvHeap;
@@ -47,26 +48,28 @@ private:
 	void CreateLightPassPSOShape(std::wstring shapeShader);
 	void CreateRTV();
 	void CreateDSV();
+	void SkyboxPSO();
 
 	UINT8* constantBufferGPUAddress;				// pointer to memory location
 	UINT8* constantBufferGPUAddressLight;				// pointer to memory location
 	UINT8* constantBufferGPUAddressShape;				// pointer to memory location
 	ConstantBuffer cbPerObj;
 	ConstantBuffer pCb;
+	ConstantBuffer skyCb;
 	static const int ConstantBufferPerObjectAlignedSize = (sizeof(ConstantBuffer) + 255) & ~255;
 	static const int PixelConstantBufferSize = (sizeof(PSConstantBuffer) + 255) & ~255;
 
 	DXGI_FORMAT mDsvFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	DXGI_FORMAT mRtvFormat[6] = {	DXGI_FORMAT_R11G11B10_FLOAT, 
+	DXGI_FORMAT mRtvFormat[6] = {	DXGI_FORMAT_R8G8B8A8_UNORM,
 									DXGI_FORMAT_R8G8B8A8_SNORM, 
 									DXGI_FORMAT_R8G8B8A8_UNORM,
 									DXGI_FORMAT_R11G11B10_FLOAT,
-									DXGI_FORMAT_R11G11B10_FLOAT,
-									DXGI_FORMAT_R11G11B10_FLOAT };
+									DXGI_FORMAT_R8_UNORM,
+									DXGI_FORMAT_R8G8B8A8_UNORM };
 	GameObject* gameObj;
 	Camera* camera;
 	Mesh* sphereMesh;
-	//GameObject* sphereObject;
+	Mesh* cubeMesh;
 public:
 	DefferedRenderer(ID3D12Device1* _device, UINT width, UINT height);
 	~DefferedRenderer();
@@ -78,6 +81,8 @@ public:
 	void Render(ID3D12GraphicsCommandList * command);
 	void RenderLightShape(ID3D12GraphicsCommandList * command, const PSConstantBuffer& pixelCb);
 	void SetSRV(ID3D12Resource* textureSRV, DXGI_FORMAT format, int index);
+	void SetCubeSRV(ID3D12Resource* textureSRV, DXGI_FORMAT format, int index);
 	void DrawLightPass(ID3D12GraphicsCommandList * commandList);
+	void RenderSkybox(ID3D12GraphicsCommandList * command, D3D12_CPU_DESCRIPTOR_HANDLE &rtvHandle, int skyboxIndex);
 };
 

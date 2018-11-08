@@ -175,18 +175,15 @@ float3 DirLightPBR(DirectionalLight light, float3 normal, float3 worldPos, float
 	return (balancedDiff * surfaceColor + spec) * 1/** light.Intensity */ * light.DiffuseColor.rgb;
 }
 
-
-
-
 struct VertexToPixel
 {
 	float4 position		: SV_POSITION;
 	float2 uv           : TEXCOORD0;
 };
 
-Texture2D gAlbedoTexture : register(t0);
-Texture2D gNormalTexture : register(t1);
-Texture2D gWorldPosTexture : register(t2);
+Texture2D gAlbedoTexture	: register(t0);
+Texture2D gNormalTexture	: register(t1);
+Texture2D gWorldPosTexture	: register(t2);
 Texture2D gRoughnessTexture : register(t3);
 Texture2D gMetalnessTexture : register(t4);
 
@@ -198,29 +195,32 @@ float4 main(VertexToPixel input) : SV_TARGET
 {
 	int3 sampleIndices = int3(input.position.xy, 0);
 
-	float3 normal = gNormalTexture.Load(sampleIndices).xyz;
-	float3 pos = gWorldPosTexture.Load(sampleIndices).xyz;
-	float3 albedo = gAlbedoTexture.Load(sampleIndices).xyz;
-	float3 shapeLight = gLightShapePass.Load(sampleIndices).xyz;
+	float3 normal = gNormalTexture.Sample(s1, input.uv).xyz;
+	float3 pos = gWorldPosTexture.Sample(s1, input.uv).xyz;
+	float3 albedo = gAlbedoTexture.Sample(s1, input.uv).xyz;
+	float3 shapeLight = gLightShapePass.Sample(s1, input.uv).xyz;
 	
 	// PBR RTV
 	float roughness = gRoughnessTexture.Sample(s1, input.uv).r;
 	float metal = gMetalnessTexture.Sample(s1, input.uv).r;
 
 
-	float3 dirToLight = normalize(dirLight.Direction);
-	float NdotL = dot(normal, -dirToLight);
-	NdotL = saturate(NdotL);
-	float4 lightColor = float4(DirLightPBR(dirLight, normal, pos, CamPos, roughness, metal, albedo.rgb, albedo.rgb),1);//dirLight.DiffuseColor * NdotL + dirLight.AmbientLight;
+	//float3 dirToLight = normalize(dirLight.Direction);
+	//float NdotL = dot(normal, -dirToLight);
+	//NdotL = saturate(NdotL);
+	float3 specColor = lerp(F0_NON_METAL.rrr, albedo.rgb, metal);
+	float4 lightColor = float4(DirLightPBR(dirLight, normal, pos, CamPos, roughness, metal, albedo.rgb, specColor),1);//dirLight.DiffuseColor * NdotL + dirLight.AmbientLight;
 
 	// Specular
-	float3 dirToCam = normalize( CamPos - pos );
-	float3 pLightDir = normalize( pLight.Position - pos);
+	//float3 dirToCam = normalize( CamPos - pos );
+	//float3 pLightDir = normalize( pLight.Position - pos);
+	
 	// incoming light dir
-	float3 refl = reflect(-pLightDir, normal);
-	float spec = pow(saturate(dot(dirToCam, refl)), 128);
-
-	float3 finalColor = (lightColor + spec.xxxx) * albedo;
-	return float4(finalColor + shapeLight,1.0f);
+	//float3 refl = reflect(-pLightDir, normal);
+	//float spec = pow(saturate(dot(dirToCam, refl)), 128);
+	//return float4(shapeLight,1);
+	float3 finalColor = (lightColor + shapeLight);
+	float3 gammaCorrect = pow(finalColor, 1.0 / 2.2);
+	return float4((finalColor),1.0f);
 
 }

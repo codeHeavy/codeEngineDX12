@@ -1,5 +1,5 @@
 #include "DefferedRenderer.h"
-
+#include "DirectXHelpers.h"
 
 DefferedRenderer::DefferedRenderer(ID3D12Device1* _device, UINT width, UINT height):
 	device(_device), viewWidth(width), viewHeight(height)
@@ -38,11 +38,13 @@ void DefferedRenderer::Init(ID3D12GraphicsCommandList* command)
 	CreateViews();
 	CreateRootSignature();
 	CreatePSO();
+	SkyboxPSO();
 	CreateLightPassPSO();
 	CreateLightPassPSOShape(L"ShapeVS.hlsl");
 	CreateRTV();
 	CreateDSV();
 	sphereMesh = new Mesh("Assets/Models/sphere.obj", device, command);
+	cubeMesh = new Mesh("Assets/Models/cube.obj", device, command);
 }
 void DefferedRenderer::CreateConstantBuffers()
 {
@@ -225,6 +227,9 @@ void DefferedRenderer::CreateLightPassPSOShape(std::wstring shapeShader)
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC descPipelineState;
 	ZeroMemory(&descPipelineState, sizeof(descPipelineState));
 
+	auto rasterizer = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	rasterizer.CullMode = D3D12_CULL_MODE_NONE;
+
 	descPipelineState.VS = ShaderManager::CompileVSShader(L"ShapeVS.hlsl");
 	descPipelineState.PS = ShaderManager::CompilePSShader(L"LightShapePS.hlsl");
 	descPipelineState.InputLayout = inputLayoutDesc;
@@ -232,7 +237,7 @@ void DefferedRenderer::CreateLightPassPSOShape(std::wstring shapeShader)
 	descPipelineState.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 	descPipelineState.DepthStencilState.DepthEnable = false;
 	descPipelineState.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-	descPipelineState.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	descPipelineState.RasterizerState = rasterizer;
 	descPipelineState.RasterizerState.DepthClipEnable = false;
 	descPipelineState.SampleMask = UINT_MAX;
 	descPipelineState.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -442,10 +447,11 @@ void DefferedRenderer::RenderLightShape(ID3D12GraphicsCommandList * command, con
 	sphereObject.SetPosition(pixelCb.pLight.Position);
 	sphereObject.SetScale(XMFLOAT3(10, 10, 10));
 	sphereObject.UpdateWorldMatrix();
+
 	XMMATRIX viewMat = XMLoadFloat4x4(&camera->GetViewMatrix());					// load view matrix
 	XMMATRIX projMat = XMLoadFloat4x4(&camera->GetProjectionMatrix());				// load projection matrix
 	XMMATRIX wvpMat = XMLoadFloat4x4(&sphereObject.GetWorldMatrix()) * viewMat * projMat; // create wvp matrix
-	XMStoreFloat4x4(&pCb.worldViewProjectionMatrix, wvpMat);	// store transposed wvp matrix in constant buffer
+	XMStoreFloat4x4(&pCb.worldViewProjectionMatrix, XMMatrixTranspose(wvpMat));	// store transposed wvp matrix in constant buffer
 	XMStoreFloat4x4(&pCb.worldMatrix, XMLoadFloat4x4(&sphereObject.GetWorldMatrix()));	// store transposed world matrix in constant buffer
 
 	memcpy(constantBufferGPUAddress + ConstantBufferPerObjectAlignedSize, &pCb, sizeof(ConstantBuffer));
@@ -466,6 +472,17 @@ void DefferedRenderer::SetSRV(ID3D12Resource* textureSRV, DXGI_FORMAT format, in
 	device->CreateShaderResourceView(textureSRV, &srvDesc, srvHeap.hCPU(index));
 }
 
+void DefferedRenderer::SetCubeSRV(ID3D12Resource* textureSRV, DXGI_FORMAT format, int index)
+{
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Format = format;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+	srvDesc.Texture2D.MipLevels = 1;
+	CreateShaderResourceView(device, textureSRV, srvHeap.hCPU(index), true);
+	//device->CreateShaderResourceView(textureSRV, &srvDesc, srvHeap.hCPU(index));
+}
+
 void DefferedRenderer::DrawLightPass(ID3D12GraphicsCommandList * commandList)
 {
 	D3D12_INDEX_BUFFER_VIEW ibv;
@@ -480,5 +497,80 @@ void DefferedRenderer::DrawLightPass(ID3D12GraphicsCommandList * commandList)
 	commandList->IASetVertexBuffers(0, 0, &vbv);
 	commandList->IASetIndexBuffer(&ibv);
 	commandList->DrawInstanced(4, 1, 0, 0);
+
+}
+
+void DefferedRenderer::SkyboxPSO()
+{
+	D3D12_INPUT_ELEMENT_DESC inputLayout[] =
+	{
+		{ "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
+		{ "TEXCOORD" , 0, DXGI_FORMAT_R32G32_FLOAT,0,12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT,0,20,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
+		{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT,0,32,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 }
+	};
+
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC descPipelineState;
+	ZeroMemory(&descPipelineState, sizeof(descPipelineState));
+	auto depthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+	depthStencilState.DepthEnable = true;
+	depthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+	depthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+
+	auto rasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	rasterizerState.DepthClipEnable = true;
+	rasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
+	rasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+
+	descPipelineState.VS = ShaderManager::CompileVSShader(L"SkyboxVS.hlsl");
+	descPipelineState.PS = ShaderManager::CompilePSShader(L"SkyboxPS.hlsl");
+	descPipelineState.InputLayout.pInputElementDescs = inputLayout;
+	descPipelineState.InputLayout.NumElements = _countof(inputLayout);
+	descPipelineState.pRootSignature = rootSignature;
+	descPipelineState.DepthStencilState = depthStencilState;
+	descPipelineState.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	descPipelineState.RasterizerState = rasterizerState;
+	descPipelineState.SampleMask = UINT_MAX;
+	descPipelineState.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	descPipelineState.NumRenderTargets = 1;
+	descPipelineState.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+	descPipelineState.SampleDesc.Count = 1;
+	descPipelineState.DSVFormat = mDsvFormat;
+
+	device->CreateGraphicsPipelineState(&descPipelineState, IID_PPV_ARGS(&skyBoxPSO));
+}
+
+void DefferedRenderer::RenderSkybox(ID3D12GraphicsCommandList * command, D3D12_CPU_DESCRIPTOR_HANDLE &rtvHandle, int skyboxIndex)
+{
+	command->SetPipelineState(skyBoxPSO);
+	command->OMSetRenderTargets(1, &rtvHandle, true, &dsvHeap.hCPUHeapStart);
+	ID3D12DescriptorHeap* ppHeaps[] = { cbHeap.pDH.Get() };
+	ID3D12DescriptorHeap* ppSrvHeaps[] = { srvHeap.pDH.Get() };
+	
+	GameObject cubeObj(cubeMesh);
+	cubeObj.UpdateWorldMatrix();
+
+	auto viewNoMove = camera->GetViewMatrix();
+	viewNoMove._41 = 0;
+	viewNoMove._42 = 0;
+	viewNoMove._43 = 0;
+
+	XMMATRIX viewMat = XMLoadFloat4x4(&viewNoMove);					// load view matrix
+	XMMATRIX projMat = XMLoadFloat4x4(&camera->GetProjectionMatrix());				// load projection matrix
+	XMMATRIX wvpMat = viewMat * projMat; // create wvp matrix
+	XMStoreFloat4x4(&skyCb.worldViewProjectionMatrix, XMMatrixTranspose(wvpMat));	// store transposed wvp matrix in constant buffer
+	XMStoreFloat4x4(&skyCb.worldMatrix, XMMatrixIdentity());	// store transposed world matrix in constant buffer
+	
+	memcpy(constantBufferGPUAddress + ConstantBufferPerObjectAlignedSize * 2, &skyCb, sizeof(ConstantBuffer));
+
+	command->SetDescriptorHeaps(1, ppSrvHeaps);
+	command->SetGraphicsRootDescriptorTable(2, srvHeap.hGPU(skyboxIndex)); //Set skybox texture
+	command->SetDescriptorHeaps(1, ppHeaps);
+	
+	command->SetGraphicsRootDescriptorTable(0, cbHeap.hGPU(2)); // set constant buffer with view and projection matrices
+	
+	command->IASetVertexBuffers(0, 1, &cubeObj.GetMesh()->GetvBufferView());
+	command->IASetIndexBuffer(&cubeObj.GetMesh()->GetiBufferView());
+	command->DrawIndexedInstanced(cubeObj.GetMesh()->GetNumIndices(), 1, 0, 0, 0);
 
 }

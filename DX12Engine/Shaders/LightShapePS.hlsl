@@ -1,4 +1,4 @@
-
+#define POINT_INTENSITY 0.5
 struct VertexToPixel
 {
 	float4 position		: SV_POSITION;
@@ -17,7 +17,7 @@ struct PointLight
 {
 	float4 Color;
 	float3 Position;
-	float padding;
+	float Range;
 };
 
 cbuffer externalData : register(b0)
@@ -173,9 +173,9 @@ float3 PointLightPBR(PointLight light, float3 normal, float3 worldPos, float3 ca
 	// Calc light direction
 	float3 toLight = normalize(light.Position - worldPos);
 	float3 toCam = normalize(camPos - worldPos);
-	float range = 10.0f;
+
 	// Calculate the light amounts
-	float atten = Attenuate(light.Position, range, worldPos);
+	float atten = Attenuate(light.Position, light.Range, worldPos);
 	float diff = DiffusePBR(normal, toLight);
 	float3 spec = MicrofacetBRDF(normal, toLight, toCam, roughness, metalness, specularColor);
 
@@ -184,27 +184,38 @@ float3 PointLightPBR(PointLight light, float3 normal, float3 worldPos, float3 ca
 	float3 balancedDiff = DiffuseEnergyConserve(diff, spec, metalness);
 
 	// Combine
-	return (balancedDiff * surfaceColor + spec) * atten * 1 /* * light.Intensity */ * light.Color;
+	return (balancedDiff * surfaceColor + spec)  * atten*  1 /* * light.Intensity */ * light.Color;
+}
+float4 calculatePointLight(float3 normal, float3 worldPos, PointLight light)
+{
+	float3 dirToPointLight = normalize(light.Position - worldPos);
+	float distance = length(worldPos - light.Position);
+	float pointNdotL = dot(normal, dirToPointLight);
+	pointNdotL = saturate(pointNdotL) * POINT_INTENSITY;
+	float attenuation = Attenuate(light.Position, light.Range, worldPos);
+	return (light.Color * pointNdotL);
 }
 
 float4 main(VertexToPixel input) : SV_TARGET
 {
 	int3 sampleIndices = int3(input.position.xy, 0);
 
-	float3 normal	= gNormalTexture.Load(sampleIndices).xyz  ;
-	float3 pos		= gWorldPosTexture.Load(sampleIndices).xyz;
-	float3 albedo	= gAlbedoTexture.Load(sampleIndices).xyz  ;
+	float3 normal	= gNormalTexture.Load(sampleIndices).rgb;
+	float3 pos		= gWorldPosTexture.Load(sampleIndices).rgb;
+	float3 albedo	= gAlbedoTexture.Load(sampleIndices).rgb;
 	// PBR RTV
-	float roughness = gRoughnessTexture.Sample(s1, input.uv).r;
-	float metal = gMetalnessTexture.Sample(s1, input.uv).r;
+	float roughness = gRoughnessTexture.Load(sampleIndices).r;
+	float metal		= gMetalnessTexture.Load(sampleIndices).r;
 	normal = normalize(normal);
 	
-	float3 dirToLight	= normalize(pos - pointLight.Position);
-	float pointNdotL	= dot(normal, -dirToLight);
-	pointNdotL			= saturate(pointNdotL);
-
-	float4 finalColor = float4(PointLightPBR(pointLight, normal, pos, CamPos, metal, roughness, albedo.rgb, albedo.rgb),1);//pointLight.Color * pointNdotL;
-	//float4 finalColor = pointLight.Color * pointNdotL;
-	return (finalColor * float4(albedo,1.0));
+	//float3 dirToLight	= normalize(pos - pointLight.Position);
+	//float pointNdotL	= dot(normal, -dirToLight);
+	//pointNdotL			= saturate(pointNdotL);
+	float3 specColor	= lerp(F0_NON_METAL.rrr, albedo.rgb, metal);
+	float4 finalColor	= float4(PointLightPBR(pointLight, normal, pos, CamPos, roughness, metal, albedo.rgb, specColor),1);
+	//float4 finalColor = calculatePointLight(normal,pos,pointLight);// pointLight.Color * pointNdotL;
+	float3 gammaCorrect = pow(finalColor, 1.0 / 2.2);
+	
+	return (finalColor );// *float4(albedo, 1.0));
 
 }

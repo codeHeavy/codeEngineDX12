@@ -49,6 +49,14 @@ XMFLOAT4X4 Camera::GetProjectionMatrix()
 
 XMFLOAT4X4 Camera::GetViewMatrix()
 {
+	XMVECTOR dir = XMVector3Rotate(XMVectorSet(0, 0, 1, 0), XMLoadFloat4(&rotation));
+
+	XMMATRIX view = XMMatrixLookToLH(
+		XMLoadFloat3(&position),
+		dir,
+		XMVectorSet(0, 1, 0, 0));
+
+	XMStoreFloat4x4(&viewMatrix, view);
 	return viewMatrix;
 }
 

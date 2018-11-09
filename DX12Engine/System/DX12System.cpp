@@ -324,7 +324,8 @@ void DX12System::Loadtextures()
 	DirectX::ResourceUploadBatch resourceUpload(device);
 	resourceUpload.Begin();
 	//// Load the skybox texture from a DDS file
-	CreateDDSTextureFromFile(device, resourceUpload, L"Assets/Images/SunnyCubeMap.dds", &skyTextureBuffer);
+	CreateDDSTextureFromFile(device, resourceUpload, L"Assets/Images/skybox1.dds", &skyTextureBuffer);
+	CreateDDSTextureFromFile(device, resourceUpload, L"Assets/Images/skybox1IR.dds", &skyIRTextureBuffer);
 	auto uploadOperation = resourceUpload.End(commandQueue);
 	uploadOperation.wait();
 	deferredRenderer->SetCubeSRV(skyTextureBuffer, albedoList[0]->GetFormat(), index);
@@ -807,6 +808,7 @@ void DX12System::Cleanup()
 	};
 
 	SAFE_RELEASE(skyTextureBuffer);
+	SAFE_RELEASE(skyIRTextureBuffer);
 	delete deferredRenderer;
 
 	delete camera;

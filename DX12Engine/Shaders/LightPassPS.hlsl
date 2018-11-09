@@ -186,8 +186,7 @@ Texture2D gNormalTexture	: register(t1);
 Texture2D gWorldPosTexture	: register(t2);
 Texture2D gRoughnessTexture : register(t3);
 Texture2D gMetalnessTexture : register(t4);
-
-Texture2D gLightShapePass: register(t5);
+Texture2D gLightShapePass	: register(t5);
 
 SamplerState s1 : register(s0);
 
@@ -218,7 +217,6 @@ float4 main(VertexToPixel input) : SV_TARGET
 	// incoming light dir
 	//float3 refl = reflect(-pLightDir, normal);
 	//float spec = pow(saturate(dot(dirToCam, refl)), 128);
-	//return float4(shapeLight,1);
 	float3 finalColor = (lightColor + shapeLight);
 	float3 gammaCorrect = pow(finalColor, 1.0 / 2.2);
 	return float4((finalColor),1.0f);

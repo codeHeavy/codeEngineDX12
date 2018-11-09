@@ -13,7 +13,7 @@ DefferedRenderer::~DefferedRenderer()
 	SAFE_RELEASE(viewCB);
 	SAFE_RELEASE(lightCB);
 	for (int i = 0; i < numRTV; ++i)
-		rtvTextures[numRTV]->Release();
+		SAFE_RELEASE(rtvTextures[numRTV]);
 	SAFE_RELEASE(depthStencilTexture);
 
 	SAFE_RELEASE(pipelineStateObject);
@@ -430,7 +430,7 @@ void DefferedRenderer::Render(ID3D12GraphicsCommandList * commandList)
 
 	XMMATRIX viewMat = XMLoadFloat4x4(&camera->GetViewMatrix());					// load view matrix
 	XMMATRIX projMat = XMLoadFloat4x4(&camera->GetProjectionMatrix());				// load projection matrix
-	XMMATRIX wvpMat = XMLoadFloat4x4(&gameObj->GetWorldMatrix()) * viewMat * projMat; // create wvp matrix
+	XMMATRIX wvpMat = XMMatrixTranspose(XMLoadFloat4x4(&gameObj->GetWorldMatrix())) * viewMat * projMat; // create wvp matrix
 	XMStoreFloat4x4(&cbPerObj.worldViewProjectionMatrix, XMMatrixTranspose( wvpMat));	// store transposed wvp matrix in constant buffer
 	XMStoreFloat4x4(&cbPerObj.worldMatrix, XMLoadFloat4x4(&gameObj->GetWorldMatrix()));	// store transposed world matrix in constant buffer
 
@@ -449,12 +449,12 @@ void DefferedRenderer::RenderLightShape(ID3D12GraphicsCommandList * command, con
 
 	GameObject sphereObject(sphereMesh);
 	sphereObject.SetPosition(pixelCb.pLight.Position);
-	sphereObject.SetScale(XMFLOAT3(10, 10, 10));
+	sphereObject.SetScale(XMFLOAT3(5, 5, 5));
 	sphereObject.UpdateWorldMatrix();
 
 	XMMATRIX viewMat = XMLoadFloat4x4(&camera->GetViewMatrix());					// load view matrix
 	XMMATRIX projMat = XMLoadFloat4x4(&camera->GetProjectionMatrix());				// load projection matrix
-	XMMATRIX wvpMat = XMLoadFloat4x4(&sphereObject.GetWorldMatrix()) * viewMat * projMat; // create wvp matrix
+	XMMATRIX wvpMat = XMMatrixTranspose(XMLoadFloat4x4(&sphereObject.GetWorldMatrix())) * viewMat * projMat; // create wvp matrix
 	XMStoreFloat4x4(&pCb.worldViewProjectionMatrix, XMMatrixTranspose(wvpMat));	// store transposed wvp matrix in constant buffer
 	XMStoreFloat4x4(&pCb.worldMatrix, XMLoadFloat4x4(&sphereObject.GetWorldMatrix()));	// store transposed world matrix in constant buffer
 

@@ -215,7 +215,6 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float4 finalColor	= float4(PointLightPBR(pointLight, normal, pos, CamPos, roughness, metal, albedo.rgb, specColor),1);
 	//float4 finalColor = calculatePointLight(normal,pos,pointLight);// pointLight.Color * pointNdotL;
 	float3 gammaCorrect = pow(finalColor, 1.0 / 2.2);
-	
 	return (finalColor );// *float4(albedo, 1.0));
 
 }

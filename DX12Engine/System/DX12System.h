@@ -109,6 +109,7 @@ public:
 	void BuildViewProjMatrix();
 
 	ID3D12Resource* skyTextureBuffer;
+	ID3D12Resource* skyIRTextureBuffer;
 	DefferedRenderer* deferredRenderer;
 
 	double perfCounterSeconds;

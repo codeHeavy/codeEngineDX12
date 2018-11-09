@@ -531,8 +531,8 @@ bool DX12System::SetupResources()
 	PSCBuffer.light.Direction = XMFLOAT3(1, -1, 0);
 
 	PSCBuffer.pLight.Color = XMFLOAT4(1, 1, 1, 1);
-	PSCBuffer.pLight.Position = XMFLOAT3(-0.5, -0.5, 0.0);
-	PSCBuffer.pLight.Range = 10;
+	PSCBuffer.pLight.Position = XMFLOAT3(0.1, 0.1, -1.0);
+	PSCBuffer.pLight.Range = 50;
 
 	// create constant buffer resource heap
 	// Resource heaps must be multiples of 64KB of size

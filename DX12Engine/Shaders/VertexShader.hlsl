@@ -27,10 +27,10 @@ cbuffer ConstantBuffer : register(b0)
 VS_OUTPUT main( VS_INPUT input )
 {
 	VS_OUTPUT output;
-	output.normal = input.normal;
+	output.normal = mul(input.normal, worldMatrix).xyz;
 	output.pos = mul(input.pos, worldViewProjectionMatrix);
 	output.texCoord = input.texCoord;
 	output.worldPos = mul(input.pos, worldMatrix).xyz;
-	output.tangent = input.tangent;
+	output.tangent = mul(input.tangent, worldMatrix).xyz;
 	return output;
 }

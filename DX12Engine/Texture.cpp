@@ -10,6 +10,8 @@ Texture::Texture(std::wstring path, ID3D12Device1 * device, ID3D12GraphicsComman
 
 Texture::~Texture()
 {
+	SAFE_RELEASE(textureBuffer);
+	SAFE_RELEASE(textureBufferUploadHeap);
 }
 
 HRESULT Texture::LoadTexture(std::wstring path)

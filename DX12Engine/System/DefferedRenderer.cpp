@@ -24,12 +24,15 @@ DefferedRenderer::~DefferedRenderer()
 	SAFE_RELEASE(lightCB);
 	SAFE_RELEASE(viewCB);
 
-	SAFE_RELEASE(rtvTextures[numRTV]);
+	//SAFE_RELEASE(rtvTextures[numRTV]);
 	SAFE_RELEASE(depthStencilTexture);
-	SAFE_RELEASE( pipelineStateObject);
 	SAFE_RELEASE( lightPassPSO);
 	SAFE_RELEASE( lightPassShapePSO);
 	SAFE_RELEASE(rootSignature);
+	SAFE_RELEASE(skyBoxPSO);
+
+	delete sphereMesh;
+	delete cubeMesh;
 }
 
 void DefferedRenderer::Init(ID3D12GraphicsCommandList* command)
@@ -469,7 +472,8 @@ void DefferedRenderer::SetSRV(ID3D12Resource* textureSRV, DXGI_FORMAT format, in
 	srvDesc.Format = format;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = 1;
-	device->CreateShaderResourceView(textureSRV, &srvDesc, srvHeap.hCPU(index));
+	CreateShaderResourceView(device, textureSRV, srvHeap.hCPU(index), false);
+	//device->CreateShaderResourceView(textureSRV, &srvDesc, srvHeap.hCPU(index));
 }
 
 void DefferedRenderer::SetCubeSRV(ID3D12Resource* textureSRV, DXGI_FORMAT format, int index)
@@ -502,17 +506,24 @@ void DefferedRenderer::DrawLightPass(ID3D12GraphicsCommandList * commandList)
 
 void DefferedRenderer::SkyboxPSO()
 {
+	HRESULT hr;
 	D3D12_INPUT_ELEMENT_DESC inputLayout[] =
 	{
 		{ "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
-		{ "TEXCOORD" , 0, DXGI_FORMAT_R32G32_FLOAT,0,12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT,0,20,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
-		{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT,0,32,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 }
+	{ "TEXCOORD" , 0, DXGI_FORMAT_R32G32_FLOAT,0,12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
+	{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT,0,20,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
+	{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT,0,32,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 }
 	};
+
+	D3D12_INPUT_LAYOUT_DESC inputLayoutDesc = {};
+
+	inputLayoutDesc.NumElements = sizeof(inputLayout) / sizeof(D3D12_INPUT_ELEMENT_DESC);
+	inputLayoutDesc.pInputElementDescs = inputLayout;
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC descPipelineState;
 	ZeroMemory(&descPipelineState, sizeof(descPipelineState));
 	auto depthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+
 	depthStencilState.DepthEnable = true;
 	depthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
 	depthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
@@ -522,10 +533,9 @@ void DefferedRenderer::SkyboxPSO()
 	rasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
 	rasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
 
-	descPipelineState.VS = ShaderManager::CompileVSShader(L"SkyboxVS.hlsl");
-	descPipelineState.PS = ShaderManager::CompilePSShader(L"SkyboxPS.hlsl");
-	descPipelineState.InputLayout.pInputElementDescs = inputLayout;
-	descPipelineState.InputLayout.NumElements = _countof(inputLayout);
+	descPipelineState.VS = ShaderManager::CompileVSShader(L"SkyVS.hlsl");
+	descPipelineState.PS = ShaderManager::CompilePSShader(L"SkyPS.hlsl");
+	descPipelineState.InputLayout = inputLayoutDesc;
 	descPipelineState.pRootSignature = rootSignature;
 	descPipelineState.DepthStencilState = depthStencilState;
 	descPipelineState.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
@@ -537,7 +547,7 @@ void DefferedRenderer::SkyboxPSO()
 	descPipelineState.SampleDesc.Count = 1;
 	descPipelineState.DSVFormat = mDsvFormat;
 
-	device->CreateGraphicsPipelineState(&descPipelineState, IID_PPV_ARGS(&skyBoxPSO));
+	hr = device->CreateGraphicsPipelineState(&descPipelineState, IID_PPV_ARGS(&skyBoxPSO));
 }
 
 void DefferedRenderer::RenderSkybox(ID3D12GraphicsCommandList * command, D3D12_CPU_DESCRIPTOR_HANDLE &rtvHandle, int skyboxIndex)

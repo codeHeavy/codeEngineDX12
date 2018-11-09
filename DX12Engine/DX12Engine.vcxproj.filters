@@ -115,10 +115,10 @@
     <FxCompile Include="Shaders\LightShapePS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="SkyPS.hlsl">
+    <FxCompile Include="Shaders\SkyPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="SkyVS.hlsl">
+    <FxCompile Include="Shaders\SkyVS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

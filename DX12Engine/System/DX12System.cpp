@@ -276,10 +276,6 @@ bool DX12System::InitD3D()
 int index = 0;
 void DX12System::Loadtextures()
 {
-	albedoList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/scratched_albedo.png", device, commandList));
-	normalList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/scratched_normals.png", device, commandList));
-	roughnessList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/scratched_roughness.png", device, commandList));
-	metalList.push_back		(std::make_unique<Texture>(L"Assets/Images/Textures/scratched_metal.png", device, commandList));
 
 	albedoList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/cobblestone_albedo.png", device, commandList));
 	normalList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/cobblestone_normals.png", device, commandList));
@@ -311,6 +307,10 @@ void DX12System::Loadtextures()
 	roughnessList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/wood_roughness.png", device, commandList));
 	metalList.push_back		(std::make_unique<Texture>(L"Assets/Images/Textures/wood_metal.png", device, commandList));
 
+	albedoList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/scratched_albedo.png", device, commandList));
+	normalList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/scratched_normals.png", device, commandList));
+	roughnessList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/scratched_roughness.png", device, commandList));
+	metalList.push_back		(std::make_unique<Texture>(L"Assets/Images/Textures/scratched_metal.png", device, commandList));
 	int i;
 	for ( i = 0; i < albedoList.size(); i++)
 	{
@@ -782,6 +782,8 @@ void DX12System::Cleanup()
 		swapChain->SetFullscreenState(false, NULL);
 	
 	SAFE_RELEASE(device);
+	SAFE_RELEASE(adapter);
+	SAFE_RELEASE(dxgiFactory);
 	SAFE_RELEASE(swapChain);
 	SAFE_RELEASE(commandQueue);
 	SAFE_RELEASE(rtvDescrioptorHeap);
@@ -796,27 +798,22 @@ void DX12System::Cleanup()
 	
 	SAFE_RELEASE(pipelineStateObject);
 	SAFE_RELEASE(rootSignature);
-	//SAFE_RELEASE(vertexBuffer);
 	SAFE_RELEASE(depthStencilBuffer);
 	SAFE_RELEASE(dsDescriptorHeap);
 
 	for (int i = 0; i < frameBufferCount; ++i)
 	{
-		//SAFE_RELEASE(mainDescriptorHeap[i]);
 		SAFE_RELEASE(constantBufferUploadHeap[i]);
 	};
 
 	SAFE_RELEASE(skyTextureBuffer);
-	delete texture;
-	delete normalTexture;
-	delete roughnessTexture;
-	delete metalTexture;
 	delete deferredRenderer;
 
 	delete camera;
 	delete mesh;
 	delete cube1;
 	delete cube2;
+	
 }
 
 //----------------------------------------------------------------------

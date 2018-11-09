@@ -10,26 +10,27 @@ DefferedRenderer::DefferedRenderer(ID3D12Device1* _device, UINT width, UINT heig
 
 DefferedRenderer::~DefferedRenderer()
 {
+	SAFE_RELEASE(viewCB);
+	SAFE_RELEASE(lightCB);
 	for (int i = 0; i < numRTV; ++i)
 		rtvTextures[numRTV]->Release();
 	SAFE_RELEASE(depthStencilTexture);
 
 	SAFE_RELEASE(pipelineStateObject);
-
-	rtvHeap.pDH->Release();
-	dsvHeap.pDH->Release();
-	srvHeap.pDH->Release();
-	cbvsrvHeap.pDH->Release();
-
-	SAFE_RELEASE(lightCB);
-	SAFE_RELEASE(viewCB);
-
-	//SAFE_RELEASE(rtvTextures[numRTV]);
-	SAFE_RELEASE(depthStencilTexture);
 	SAFE_RELEASE( lightPassPSO);
 	SAFE_RELEASE( lightPassShapePSO);
-	SAFE_RELEASE(rootSignature);
 	SAFE_RELEASE(skyBoxPSO);
+
+	cbvsrvHeap.pDH->Release();
+	dsvHeap.pDH->Release();
+	rtvHeap.pDH->Release();
+	srvHeap.pDH->Release();
+
+	SAFE_RELEASE(rootSignature);
+
+	//delete constantBufferGPUAddress;				// pointer to memory location
+	//delete constantBufferGPUAddressLight;				// pointer to memory location
+	//delete constantBufferGPUAddressShape;				// pointer to memory location
 
 	delete sphereMesh;
 	delete cubeMesh;

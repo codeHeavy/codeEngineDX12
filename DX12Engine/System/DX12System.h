@@ -109,11 +109,6 @@ public:
 	void BuildViewProjMatrix();
 
 	ID3D12Resource* skyTextureBuffer;
-	Texture* texture;
-	Texture* normalTexture;
-	Texture* roughnessTexture;
-	Texture* metalTexture;
-
 	DefferedRenderer* deferredRenderer;
 
 	double perfCounterSeconds;

@@ -652,6 +652,22 @@ void DX12System::Update()
 		}
 
 	}
+	if (KeyDown(VK_RIGHT))
+	{
+		PSCBuffer.pLight.Position.x += 1 * deltaTime;
+	}
+	if (KeyDown(VK_LEFT))
+	{
+		PSCBuffer.pLight.Position.x -= 1 * deltaTime;
+	}
+	if (KeyDown(VK_UP))
+	{
+		PSCBuffer.pLight.Position.y += 1 * deltaTime;
+	}
+	if (KeyDown(VK_DOWN))
+	{
+		PSCBuffer.pLight.Position.y -= 1 * deltaTime;
+	}
 	camera->Update(deltaTime);
 	cube1->UpdateWorldMatrix();
 	cube2->UpdateWorldMatrix();

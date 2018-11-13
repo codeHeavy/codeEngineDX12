@@ -325,10 +325,10 @@ void DX12System::Loadtextures()
 	DirectX::ResourceUploadBatch resourceUpload(device);
 	resourceUpload.Begin();
 	//// Load the skybox texture from a DDS file
-	CreateDDSTextureFromFile(device, resourceUpload, L"Assets/Images/envEnvHDR.dds", &skyTextureBuffer);
-	CreateDDSTextureFromFile(device, resourceUpload, L"Assets/Images/envDiffuseHDR.dds", &skyIRTextureBuffer);
-	CreateDDSTextureFromFile(device, resourceUpload, L"Assets/Images/envSpecularHDR.dds", &skyPreFilterTextureBuffer);
-	CreateDDSTextureFromFile(device, resourceUpload, L"Assets/Images/envBrdf.dds", &skyBrdfTextureBuffer);
+	CreateDDSTextureFromFile(device, resourceUpload, L"Assets/Images/Skyboxes/FactoryEnvHDR.dds", &skyTextureBuffer);
+	CreateDDSTextureFromFile(device, resourceUpload, L"Assets/Images/Skyboxes/FactoryDiffuseHDR.dds", &skyIRTextureBuffer);
+	CreateDDSTextureFromFile(device, resourceUpload, L"Assets/Images/Skyboxes/FactorySpecularHDR.dds", &skyPreFilterTextureBuffer);
+	CreateDDSTextureFromFile(device, resourceUpload, L"Assets/Images/Skyboxes/FactoryBrdf.dds", &skyBrdfTextureBuffer);
 	auto uploadOperation = resourceUpload.End(commandQueue);
 	uploadOperation.wait();
 	deferredRenderer->SetCubeSRV(skyTextureBuffer, index);

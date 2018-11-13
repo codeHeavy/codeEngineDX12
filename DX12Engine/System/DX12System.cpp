@@ -274,6 +274,7 @@ bool DX12System::InitD3D()
 	return true;
 }
 int index = 0;
+int skyIndex = 0;
 void DX12System::Loadtextures()
 {
 
@@ -328,7 +329,10 @@ void DX12System::Loadtextures()
 	CreateDDSTextureFromFile(device, resourceUpload, L"Assets/Images/skybox1IR.dds", &skyIRTextureBuffer);
 	auto uploadOperation = resourceUpload.End(commandQueue);
 	uploadOperation.wait();
-	deferredRenderer->SetCubeSRV(skyTextureBuffer, albedoList[0]->GetFormat(), index);
+	deferredRenderer->SetCubeSRV(skyTextureBuffer, index);
+	skyIndex = index;
+	//deferredRenderer->SetCubeSRV(skyIRTextureBuffer, ++index);
+	deferredRenderer->SetIBLTextures(skyIRTextureBuffer);
 }
 
 //----------------------------------------------------------------------
@@ -531,7 +535,7 @@ bool DX12System::SetupResources()
 	PSCBuffer.light.Direction = XMFLOAT3(1, -1, 0);
 
 	PSCBuffer.pLight.Color = XMFLOAT4(1, 1, 1, 1);
-	PSCBuffer.pLight.Position = XMFLOAT3(0.1, 0.1, -1.0);
+	PSCBuffer.pLight.Position = XMFLOAT3(1.0, 1.0, -1.0);
 	PSCBuffer.pLight.Range = 50;
 
 	// create constant buffer resource heap
@@ -669,6 +673,7 @@ void DX12System::Update()
 		PSCBuffer.pLight.Position.y -= 1 * deltaTime;
 	}
 	camera->Update(deltaTime);
+	cube1->Rotate(0, sin(XM_PI * deltaTime * 0.5), 0);
 	cube1->UpdateWorldMatrix();
 	cube2->UpdateWorldMatrix();
 }
@@ -723,7 +728,7 @@ void DX12System::UpdatePipeline()
 	deferredRenderer->ApplyLightingPSO(commandList,true,PSCBuffer);
 	deferredRenderer->DrawLightPass(commandList);
 
-	deferredRenderer->RenderSkybox(commandList, rtvHandle, index);
+	deferredRenderer->RenderSkybox(commandList, rtvHandle, skyIndex);
 	// transition render target from render target state to curtrrent state
 	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTargets[frameIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
 	hr = commandList->Close();	// resets to recording state

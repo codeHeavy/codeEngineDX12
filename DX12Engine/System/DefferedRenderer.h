@@ -23,6 +23,7 @@ private:
 	ID3D12PipelineState* lightPassPSO;
 	ID3D12PipelineState* lightPassShapePSO;
 	ID3D12PipelineState* skyBoxPSO;
+	ID3D12PipelineState* prefilterEnvMapPSO;
 
 	CDescriptorHeapWrapper cbvsrvHeap;
 	CDescriptorHeapWrapper dsvHeap;
@@ -81,8 +82,11 @@ public:
 	void Render(ID3D12GraphicsCommandList * command);
 	void RenderLightShape(ID3D12GraphicsCommandList * command, const PSConstantBuffer& pixelCb);
 	void SetSRV(ID3D12Resource* textureSRV, DXGI_FORMAT format, int index);
-	void SetCubeSRV(ID3D12Resource* textureSRV, DXGI_FORMAT format, int index);
+	void SetCubeSRV(ID3D12Resource* textureSRV, int index);
 	void DrawLightPass(ID3D12GraphicsCommandList * commandList);
 	void RenderSkybox(ID3D12GraphicsCommandList * command, D3D12_CPU_DESCRIPTOR_HANDLE &rtvHandle, int skyboxIndex);
+	void SetIBLTextures(ID3D12Resource* irradianceTextureCube);
+	void GeneratePreFilterEnvironmentMap(ID3D12GraphicsCommandList* command, int envTextureIndex);
+	void CreatePrefilterEnvironmentPSO();
 };
 

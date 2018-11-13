@@ -113,13 +113,14 @@ float3 DirLightPBR(	DirectionalLight light, float3 normal, float3 worldPos, floa
 	kD *= (1.0f - metalness);
 	
 	// Light calc
-	float3 lightVal = (surfaceColor * kD / PI + spec) * balancedDiff * light.DiffuseColor.rgb;
+	//float3 lightVal = (surfaceColor * kD / PI + spec) * balancedDiff * light.DiffuseColor.rgb;
+	float3 lightVal = (balancedDiff * surfaceColor + spec) * light.DiffuseColor.rgb ;
 	
 	float3 diffuse = irradiance * surfaceColor;
 	float3 specular = prefilteredColor * (kS * brdf.x + brdf.y);
-	//float ao = 1.0f;
-	float3 ambient = (kD * diffuse + specular); // multiply by ao = 1
-	float3 lightColor = ambient + lightVal;
+	float ao = 1.0f;
+	float3 ambient = (kD * diffuse + specular) * ao; // multiply by ao = 1
+	float3 lightColor = (ambient + lightVal) * 1;
 	// Tone mapping
 	lightColor = lightColor / (lightColor + float4(1.f, 1.f, 1.f,1.f));
 	return lightColor;

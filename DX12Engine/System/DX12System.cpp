@@ -325,14 +325,16 @@ void DX12System::Loadtextures()
 	DirectX::ResourceUploadBatch resourceUpload(device);
 	resourceUpload.Begin();
 	//// Load the skybox texture from a DDS file
-	CreateDDSTextureFromFile(device, resourceUpload, L"Assets/Images/skybox1.dds", &skyTextureBuffer);
-	CreateDDSTextureFromFile(device, resourceUpload, L"Assets/Images/skybox1IR.dds", &skyIRTextureBuffer);
+	CreateDDSTextureFromFile(device, resourceUpload, L"Assets/Images/envEnvHDR.dds", &skyTextureBuffer);
+	CreateDDSTextureFromFile(device, resourceUpload, L"Assets/Images/envDiffuseHDR.dds", &skyIRTextureBuffer);
+	CreateDDSTextureFromFile(device, resourceUpload, L"Assets/Images/envSpecularHDR.dds", &skyPreFilterTextureBuffer);
+	CreateDDSTextureFromFile(device, resourceUpload, L"Assets/Images/envBrdf.dds", &skyBrdfTextureBuffer);
 	auto uploadOperation = resourceUpload.End(commandQueue);
 	uploadOperation.wait();
 	deferredRenderer->SetCubeSRV(skyTextureBuffer, index);
 	skyIndex = index;
 	//deferredRenderer->SetCubeSRV(skyIRTextureBuffer, ++index);
-	deferredRenderer->SetIBLTextures(skyIRTextureBuffer);
+	deferredRenderer->SetPBRTextures(skyIRTextureBuffer, skyPreFilterTextureBuffer, skyBrdfTextureBuffer);
 }
 
 //----------------------------------------------------------------------
@@ -650,7 +652,7 @@ void DX12System::Update()
 	if (KeyPressed(VK_TAB))
 	{
 		textureIndex += 4;
-		if (textureIndex > albedoList.size()*4)
+		if (textureIndex > albedoList.size()*4 - 4)
 		{
 			textureIndex = 0;
 		}
@@ -673,7 +675,7 @@ void DX12System::Update()
 		PSCBuffer.pLight.Position.y -= 1 * deltaTime;
 	}
 	camera->Update(deltaTime);
-	cube1->Rotate(0, sin(XM_PI * deltaTime * 0.5), 0);
+	cube1->Rotate(0, sin(XM_PI * deltaTime * 0.2), 0);
 	cube1->UpdateWorldMatrix();
 	cube2->UpdateWorldMatrix();
 }

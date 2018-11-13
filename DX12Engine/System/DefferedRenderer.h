@@ -85,8 +85,6 @@ public:
 	void SetCubeSRV(ID3D12Resource* textureSRV, int index);
 	void DrawLightPass(ID3D12GraphicsCommandList * commandList);
 	void RenderSkybox(ID3D12GraphicsCommandList * command, D3D12_CPU_DESCRIPTOR_HANDLE &rtvHandle, int skyboxIndex);
-	void SetIBLTextures(ID3D12Resource* irradianceTextureCube);
-	void GeneratePreFilterEnvironmentMap(ID3D12GraphicsCommandList* command, int envTextureIndex);
-	void CreatePrefilterEnvironmentPSO();
+	void SetPBRTextures(ID3D12Resource* irradianceTextureCube, ID3D12Resource* prefilterTextureCube, ID3D12Resource* brdf);
 };
 

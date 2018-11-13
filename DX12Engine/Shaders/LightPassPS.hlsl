@@ -92,13 +92,17 @@ float3 DiffuseEnergyConserve(float diffuse, float3 specular, float metalness)
 	return diffuse * ((1 - saturate(specular)) * (1 - metalness));
 }
 
-float3 AmbientPBR(float3 kD, float metalness, float3 diffuse, float ao)
+float3 AmbientPBR(float3 kD, float metalness, float3 diffuse, float ao, float3 specular)
 {
 	kD *= (1.0f - metalness);
-	return (kD * diffuse) * ao;
+	return (kD * diffuse + specular) * ao;
 }
 
-float3 DirLightPBR(DirectionalLight light, float3 normal, float3 worldPos, float3 camPos, float roughness, float metalness, float3 surfaceColor, float3 specularColor, float3 irradiance)
+
+
+float3 DirLightPBR(	DirectionalLight light, float3 normal, float3 worldPos, float3 camPos, 
+					float roughness, float metalness, float3 surfaceColor, float3 specularColor, 
+					float3 irradiance, float3 prefilteredColor, float2 brdf)
 {
 	float3 toLight = normalize(-light.Direction);
 	float3 toCam = normalize(camPos - worldPos);
@@ -108,11 +112,12 @@ float3 DirLightPBR(DirectionalLight light, float3 normal, float3 worldPos, float
 	float3 spec = MicrofacetBRDF(normal, toLight, toCam, roughness, metalness, specularColor, kS);
 
 	float3 balancedDiff = DiffuseEnergyConserve(diff, spec, metalness);
-
+	float3 specular = prefilteredColor * (kS * brdf.x + brdf.y);
 	float ao = 1.0f;
 	float3 kD = float3(1.0f, 1.0f, 1.0f) - kS;
 	float3 diffuse = irradiance * surfaceColor;
-	float3 ambient = AmbientPBR(kD, metalness, diffuse, ao);
+	float3 ambient = AmbientPBR(kD, metalness, diffuse, ao, specular);
+
 	return (balancedDiff * surfaceColor + spec) * 1 * light.DiffuseColor.rgb + ambient;
 
 	return (balancedDiff * surfaceColor + spec) * light.DiffuseColor.rgb;//* irradiance;
@@ -132,8 +137,24 @@ Texture2D gMetalnessTexture		: register(t4);
 Texture2D gLightShapePass		: register(t5);
 Texture2D gDepth				: register(t6);
 TextureCube irradianceTexture	: register(t7);
+Texture2D brdfTexture			: register(t8);
+TextureCube prefilterTexture	: register(t9);
 
 SamplerState s1 : register(s0);
+
+float3 PrefilteredColor(float3 viewDir, float3 normal, float roughness, TextureCube prefilter)
+{
+	const float MAX_REF_LOD = 4.0f;
+	float3 R = reflect(-viewDir, normal);
+	return prefilter.SampleLevel(s1, R, roughness * MAX_REF_LOD).rgb;
+}
+float2 BrdfLUT(float3 normal, float3 viewDir, float roughness, Texture2D brdftex)
+{
+	float NdotV = dot(normal, viewDir);
+	NdotV = max(NdotV, 0.0f);
+	float2 uv = float2(NdotV, roughness);
+	return brdftex.Sample(s1, uv).rg;
+}
 
 float4 main(VertexToPixel input) : SV_TARGET
 {
@@ -149,11 +170,14 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float metal = gMetalnessTexture.Sample(s1, input.uv).r;
 
 	float3 irradiance = irradianceTexture.Sample(s1, normal).rgb;
+	float3 viewDir = normalize(CamPos.xyz - pos);
+	float3 prefilter = PrefilteredColor(viewDir, normal, roughness, prefilterTexture);
+	float2 brdf = BrdfLUT(normal, viewDir, roughness, brdfTexture);
 	//float3 dirToLight = normalize(dirLight.Direction);
 	//float NdotL = dot(normal, -dirToLight);
 	//NdotL = saturate(NdotL);
 	float3 specColor = lerp(F0_NON_METAL.rrr, albedo.rgb, metal);
-	float4 lightColor = float4(DirLightPBR(dirLight, normal, pos, CamPos, roughness, metal, albedo.rgb, specColor,irradiance),1);//dirLight.DiffuseColor * NdotL + dirLight.AmbientLight;
+	float4 lightColor = float4(DirLightPBR(dirLight, normal, pos, CamPos, roughness, metal, albedo.rgb, specColor,irradiance,prefilter,brdf),1);//dirLight.DiffuseColor * NdotL + dirLight.AmbientLight;
 	lightColor = lightColor / (lightColor + float4(1.f, 1.f, 1.f,1.f));
 	float3 finalColor = (lightColor  + shapeLight);
 	float3 gammaCorrect = pow(finalColor, 1.0 / 2.2);

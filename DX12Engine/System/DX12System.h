@@ -110,6 +110,8 @@ public:
 
 	ID3D12Resource* skyTextureBuffer;
 	ID3D12Resource* skyIRTextureBuffer;
+	ID3D12Resource* skyPreFilterTextureBuffer;
+	ID3D12Resource* skyBrdfTextureBuffer;
 	DefferedRenderer* deferredRenderer;
 
 	double perfCounterSeconds;

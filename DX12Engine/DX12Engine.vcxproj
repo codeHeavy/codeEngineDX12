@@ -154,6 +154,7 @@
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="System\Camera.h" />
+    <ClInclude Include="System\ComputeDispatch.h" />
     <ClInclude Include="System\ConstantBuffer.h" />
     <ClInclude Include="System\DefferedRenderer.h" />
     <ClInclude Include="System\DirectxHelper.h" />
@@ -175,6 +176,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdafx.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="System\Camera.cpp" />
+    <ClCompile Include="System\ComputeDispatch.cpp" />
     <ClCompile Include="System\DefferedRenderer.cpp" />
     <ClCompile Include="System\DirectxHelper.cpp" />
     <ClCompile Include="System\DX12System.cpp" />

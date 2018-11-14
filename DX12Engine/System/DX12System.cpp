@@ -1,6 +1,7 @@
 
 #include "DX12System.h"
 #include "DDSTextureLoader.h"
+#include "OBJ_Loader.h"
 //
 int ConstantBufferPerObjectAlignedSize = (sizeof(ConstantBuffer) + 255) & ~255;
 DX12System* DX12System::dxInstance = 0;
@@ -337,6 +338,31 @@ void DX12System::Loadtextures()
 	deferredRenderer->SetPBRTextures(skyIRTextureBuffer, skyPreFilterTextureBuffer, skyBrdfTextureBuffer);
 }
 
+//---------------------------------------------------------------
+// Convert OBJ loader vertex to our custom vertex
+//---------------------------------------------------------------
+Vertex ObjlToVertex(objl::Vertex vertex)
+{
+	auto pos = XMFLOAT3(vertex.Position.X, vertex.Position.Y, vertex.Position.Z);
+	auto normal = XMFLOAT3(vertex.Normal.X, vertex.Normal.Y, vertex.Normal.Z);
+	auto uv = XMFLOAT2(vertex.TextureCoordinate.X, vertex.TextureCoordinate.Y);
+	return { pos, uv, normal };
+}
+
+//------------------------------------------------------------------------------
+// Convert an array/vector of OBJ loader vertices to our custom vertex array
+//------------------------------------------------------------------------------
+std::vector<Vertex> ObjlToVertex(std::vector<objl::Vertex> vertices)
+{
+	std::vector<Vertex> verts;
+	for (auto v : vertices)
+	{
+		verts.push_back(ObjlToVertex(v));
+	}
+	return verts;
+}
+
+
 //----------------------------------------------------------------------
 //	Setup the initial values for resources
 //----------------------------------------------------------------------
@@ -496,7 +522,11 @@ bool DX12System::SetupResources()
 	
 	
 	mesh = new Mesh("Assets/Models/sphere.obj", device, commandList);
-	
+	/*objl::Loader loader;
+	loader.LoadFile("Assets/Models/sphere.obj");
+	auto verts = ObjlToVertex(loader.LoadedVertices);
+	auto indices = loader.LoadedIndices;
+	Mesh* mesh = new Mesh(verts.data(), verts.size(), indices.data(), indices.size(), device, commandList);*/
 	// Create depth stencil
 	// Create depth stencil descriptor heap
 	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
@@ -615,13 +645,8 @@ void DX12System::BuildViewProjMatrix()
 	cube1->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
 	cube1->SetScale(XMFLOAT3(2, 2, 2));
 	
-	// second cube
-	cube2 = new GameObject(mesh);
-	cube2->SetPosition(XMFLOAT3(0.5f, 0.5f, 0.0f));
-	
+		
 	cube1->UpdateWorldMatrix();
-	cube2->UpdateWorldMatrix();
-	
 }
 
 bool DX12System::KeyDown(int key)
@@ -677,7 +702,6 @@ void DX12System::Update()
 	camera->Update(deltaTime);
 	cube1->Rotate(0, sin(XM_PI * deltaTime * 0.2), 0);
 	cube1->UpdateWorldMatrix();
-	cube2->UpdateWorldMatrix();
 }
 
 //----------------------------------------------------------------------
@@ -837,7 +861,6 @@ void DX12System::Cleanup()
 	delete camera;
 	delete mesh;
 	delete cube1;
-	delete cube2;
 	
 }
 

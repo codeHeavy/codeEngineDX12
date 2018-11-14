@@ -129,7 +129,6 @@ public:
 	Camera* camera;
 	Mesh* mesh;
 	GameObject* cube1;
-	GameObject* cube2;
 	PSConstantBuffer PSCBuffer;
 
 	// Convenience methods for handling mouse input, since we

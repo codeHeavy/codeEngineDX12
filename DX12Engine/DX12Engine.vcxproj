@@ -162,6 +162,7 @@
     <ClInclude Include="System\ImageLoader.h" />
     <ClInclude Include="System\Lights.h" />
     <ClInclude Include="System\Mesh.h" />
+    <ClInclude Include="System\OBJ_Loader.h" />
     <ClInclude Include="System\ShaderManager.h" />
     <ClInclude Include="System\Vertex.h" />
     <ClInclude Include="Texture.h" />

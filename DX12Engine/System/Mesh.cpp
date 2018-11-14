@@ -1,12 +1,14 @@
 #include "Mesh.h"
 
-Mesh::Mesh(Vertex* vertexList,int numverts, int* indexList, int numindices, ID3D12Device1* device, ID3D12GraphicsCommandList* commandList) {
+Mesh::Mesh(Vertex* vertexList,int numverts, unsigned int* indexList,  int numindices, ID3D12Device1* device, ID3D12GraphicsCommandList* commandList) {
 	// numverts required
 	numVerts = numverts;
 	sizeVertBuffer = sizeof(Vertex) * numverts;
 	// num indicies
 	numIndices = numindices;
 	sizeIndexBuffer = sizeof(indexList) * numindices;
+
+	CalculateTangents(vertexList, numverts, indexList, numindices);
 	// Create Vertex Buffer
 	CreateVertexBuffer(vertexList, device, commandList);
 	// Create Index Buffer
@@ -27,7 +29,7 @@ Mesh::Mesh(const char* objFile, ID3D12Device1* device, ID3D12GraphicsCommandList
 	std::vector<XMFLOAT3> normals;       // Normals from the file
 	std::vector<XMFLOAT2> uvs;           // UVs from the file
 	std::vector<Vertex> verts;           // Verts we're assembling
-	std::vector<int> indices;           // Indices of these verts
+	std::vector<unsigned int> indices;           // Indices of these verts
 	unsigned int vertCounter = 0;        // Count of vertices/indices
 	char chars[100];                     // String for line reading
 
@@ -186,7 +188,7 @@ Mesh::Mesh(const char* objFile, ID3D12Device1* device, ID3D12GraphicsCommandList
 
 // Calculates the tangents of the vertices in a mesh
 // Code adapted from: http://www.terathon.com/code/tangent.html
-void Mesh::CalculateTangents(Vertex* verts, int numVerts, int* indices, int numIndices)
+void Mesh::CalculateTangents(Vertex* verts, int numVerts, unsigned int* indices, int numIndices)
 {
 	// Reset tangents
 	for (int i = 0; i < numVerts; i++)
@@ -352,7 +354,7 @@ void Mesh::CreateVertexBuffer(Vertex* vertexList, ID3D12Device1* device, ID3D12G
 	vertexBufferView.SizeInBytes = sizeVertBuffer;
 }
 
-void Mesh::CreateIndexBuffer(int* indexList, ID3D12Device1* device, ID3D12GraphicsCommandList* commandList)
+void Mesh::CreateIndexBuffer(unsigned int* indexList, ID3D12Device1* device, ID3D12GraphicsCommandList* commandList)
 {
 	// Create default heap for index buffer
 	device->CreateCommittedResource(

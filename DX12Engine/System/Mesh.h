@@ -15,10 +15,10 @@ private:
 	int sizeIndexBuffer;
 
 	void CreateVertexBuffer(Vertex* vertexList, ID3D12Device1* device, ID3D12GraphicsCommandList* commandList);
-	void CreateIndexBuffer(int* indexList, ID3D12Device1* device, ID3D12GraphicsCommandList* commandList);
-	void CalculateTangents(Vertex* verts, int numVerts, int* indices, int numIndices);
+	void CreateIndexBuffer(unsigned int* indexList, ID3D12Device1* device, ID3D12GraphicsCommandList* commandList);
+	void CalculateTangents(Vertex* verts, int numVerts, unsigned int* indices, int numIndices);
 public:
-	Mesh(Vertex* vertexList, int numverts, int* indexList,  int numindices, ID3D12Device1* device, ID3D12GraphicsCommandList* commandList);
+	Mesh(Vertex* vertexList, int numverts, unsigned int* indexList,   int numindices, ID3D12Device1* device, ID3D12GraphicsCommandList* commandList);
 	Mesh(const char* objFile, ID3D12Device1* device, ID3D12GraphicsCommandList* commandList);
 	~Mesh();
 	ID3D12Resource* GetVertexBuffer();

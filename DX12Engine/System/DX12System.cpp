@@ -639,7 +639,7 @@ void DX12System::BuildViewProjMatrix()
 	camera = new Camera();
 	camera->Update();
 	camera->UpdateProjectionMatrix(width, height);
-	PSCBuffer.CamPos = DirectX::XMFLOAT4(camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z, 1.0);
+	PSCBuffer.CamPos = DirectX::XMFLOAT3(camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z);
 	// first cube
 	cube1 = new GameObject(mesh);
 	cube1->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
@@ -700,6 +700,7 @@ void DX12System::Update()
 		PSCBuffer.pLight.Position.y -= 1 * deltaTime;
 	}
 	camera->Update(deltaTime);
+	PSCBuffer.CamPos = camera->GetPosition();
 	cube1->Rotate(0, sin(XM_PI * deltaTime * 0.2), 0);
 	cube1->UpdateWorldMatrix();
 }

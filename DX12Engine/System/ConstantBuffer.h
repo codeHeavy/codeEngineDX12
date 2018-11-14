@@ -15,5 +15,5 @@ struct PSConstantBuffer
 {
 	DirectionalLight light;
 	PointLight pLight;
-	XMFLOAT4 CamPos;
+	XMFLOAT3 CamPos;
 };

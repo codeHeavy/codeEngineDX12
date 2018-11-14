@@ -18,7 +18,7 @@ cbuffer lightData : register(b0)
 {
 	DirectionalLight dirLight;
 	PointLight	pLight;
-	float4 CamPos;
+	float3 CamPos;
 }
 
 float Attenuate(float3 position, float range, float3 worldPos)

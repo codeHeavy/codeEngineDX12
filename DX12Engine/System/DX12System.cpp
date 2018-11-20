@@ -643,6 +643,7 @@ void DX12System::BuildViewProjMatrix()
 	
 	compute = new ComputeDispatch(device);
 	compute->SetSRV(albedoList[0]->GetTexture(), 0);
+	compute->SetUAV(0);
 	// first cube
 	cube1 = new GameObject(mesh);
 	cube1->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
@@ -760,8 +761,8 @@ void DX12System::UpdatePipeline()
 
 
 	deferredRenderer->RenderSkybox(commandList, rtvHandle, skyIndex);
-	compute->SetShader(commandList);
-	compute->Dispatch(commandList, 8);
+//	compute->SetShader(commandList);
+	compute->Dispatch(commandList);
 	// transition render target from render target state to curtrrent state
 	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTargets[frameIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
 	hr = commandList->Close();	// resets to recording state

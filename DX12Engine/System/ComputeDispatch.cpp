@@ -2,10 +2,14 @@
 
 ComputeDispatch::ComputeDispatch(ID3D12Device1* device) : device(device)
 {
+	Init();
+}
+
+void ComputeDispatch::Init()
+{
 	CreateRootSignature();
 	CreatePipelineStateObject();
 }
-
 
 ComputeDispatch::~ComputeDispatch()
 {
@@ -23,10 +27,9 @@ void ComputeDispatch::CreateRootSignature()
 	CD3DX12_ROOT_PARAMETER rootParameters[3];
 	rootParameters[0].InitAsDescriptorTable(1, &range[0], D3D12_SHADER_VISIBILITY_ALL);
 	rootParameters[1].InitAsDescriptorTable(1, &range[1], D3D12_SHADER_VISIBILITY_ALL);
-	rootParameters[2].InitAsConstants(4, 0);
 
 	CD3DX12_ROOT_SIGNATURE_DESC descRootSignature;
-	descRootSignature.Init(3, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+	descRootSignature.Init(2, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
 		D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
 		D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
 		D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
@@ -40,9 +43,9 @@ void ComputeDispatch::CreateRootSignature()
 
 	D3D12SerializeRootSignature(&descRootSignature, D3D_ROOT_SIGNATURE_VERSION_1, &rootSigBlob, &errorBlob);
 
-	device->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
-
-	srvHeap.Create(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 32, true);
+	//device->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
+	
+	DirectX::CreateRootSignature(device, &descRootSignature, &rootSignature);
 }
 
 void ComputeDispatch::CreatePipelineStateObject()
@@ -54,30 +57,54 @@ void ComputeDispatch::CreatePipelineStateObject()
 	device->CreateComputePipelineState(&computeDesc, IID_PPV_ARGS(&computePSO));
 }
 
-void ComputeDispatch::SetShader(ID3D12GraphicsCommandList * commandList)
-{
-	commandList->SetComputeRootSignature(rootSignature);
-	commandList->SetComputeRootDescriptorTable(0, srvHeap.hGPU(0));
-	commandList->SetPipelineState(computePSO);
-}
-
-//void ComputeDispatch::SetTextureUAV(ID3D12GraphicsCommandList* commandList, Texture* textureUAV)
-//{
-//	ID3D12DescriptorHeap* ppHeaps[] = { textureUAV->GetTextureDescriptorHeap()->pDescriptorHeap.Get() };
-//	commandList->SetDescriptorHeaps(1, ppHeaps);
-//	commandList->SetComputeRootDescriptorTable(1, textureUAV->GetGPUDescriptorHandle());
-//}
-//
 void ComputeDispatch::SetSRV(ID3D12Resource* textureSRV, int index)
 {
-	DirectX::CreateShaderResourceView(device, textureSRV, srvHeap.hCPU(index), false);
-
-	//ID3D12DescriptorHeap* ppHeaps[] = { textureSRV->GetTextureDescriptorHeap()->pDescriptorHeap.Get() };
-	//commandList->SetDescriptorHeaps(1, ppHeaps);
-	//commandList->SetComputeRootDescriptorTable(0, textureSRV->GetGPUDescriptorHandle());
+	srvHeap.Create(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 8, true);
+	DirectX::CreateShaderResourceView(device, textureSRV, srvHeap.hCPU(0), false);
 }
 
-void ComputeDispatch::Dispatch(ID3D12GraphicsCommandList* commandList, int x, int y, int z)
+void ComputeDispatch::SetUAV( int index)
 {
-	commandList->Dispatch(x, y, z);
+	//HRESULT hr;
+	//D3D12_RESOURCE_DESC texDesc;
+	//ZeroMemory(&texDesc, sizeof(D3D12_RESOURCE_DESC));
+	//texDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	//texDesc.Alignment = 0;
+	//texDesc.Width = 1024;
+	//texDesc.Height = 720;
+	//texDesc.DepthOrArraySize = 1;
+	//texDesc.MipLevels = 1;
+	//texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	//texDesc.SampleDesc.Count = 1;
+	//texDesc.SampleDesc.Quality = 0;
+	//texDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	//texDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+
+	//hr = device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+	//	D3D12_HEAP_FLAG_NONE, &texDesc,
+	//	D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+	//	nullptr,
+	//	IID_PPV_ARGS(&textureUAV));
+	
+	uavHeap.Create(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 8, true);
+
+	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+	uavDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+	uavDesc.Texture2D.MipSlice = 1;
+	uavDesc.Buffer.NumElements = 1;
+	uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
+
+	device->CreateUnorderedAccessView(textureUAV.Get(), nullptr, &uavDesc, srvHeap.hCPU(1));
+}
+
+void ComputeDispatch::Dispatch(ID3D12GraphicsCommandList* commandList)
+{
+	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(NULL));
+	commandList->SetComputeRootSignature(rootSignature);
+	commandList->SetComputeRootDescriptorTable(0, srvHeap.hGPU(0));
+	commandList->SetComputeRootDescriptorTable(1, uavHeap.hGPU(0));
+	commandList->SetPipelineState(computePSO);
+
+	commandList->Dispatch(16, 16, 1);
 }

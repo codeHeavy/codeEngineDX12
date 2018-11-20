@@ -12,6 +12,7 @@
 #include "ResourceUploadBatch.h"
 #include "DirectXHelpers.h"
 #include "Windowsx.h"
+#include "ComputeDispatch.h"
 
 #ifndef BUFFERCOUNT
 #define BUFFERCOUNT 3
@@ -153,4 +154,6 @@ public:
 	bool KeyPressed(int key);
 	bool KeyReleased(int key);
 	int textureIndex = 0;
+
+	ComputeDispatch* compute;
 };

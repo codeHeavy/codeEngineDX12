@@ -130,6 +130,9 @@
     <FxCompile Include="Shaders\SkyVS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="Shaders\ComputeShaderDefault.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\Lighting.hlsli">

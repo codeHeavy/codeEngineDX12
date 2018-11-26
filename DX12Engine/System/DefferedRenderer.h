@@ -8,10 +8,22 @@
 #include "Camera.h"
 #include <string>
 
+enum GBufferRenderTargetOrder
+{
+	RTV_ORDER_ALBEDO = 0,
+	RTV_ORDER_NORMAL,
+	RTV_ORDER_WORLDPOS,
+	RTV_ORDER_ROUGHNESS,
+	RTV_ORDER_METALNESS,
+	RTV_ORDER_LIGHTSHAPE,
+	RTV_ORDER_QUAD,
+	RTV_ORDER_COUNT
+};
+
 class DefferedRenderer
 {
 private:
-	const static int numRTV = 6;
+	const static int numRTV = 7;
 	ID3D12Device1* device;
 
 	ID3D12Resource* viewCB;
@@ -24,6 +36,7 @@ private:
 	ID3D12PipelineState* lightPassShapePSO;
 	ID3D12PipelineState* skyBoxPSO;
 	ID3D12PipelineState* prefilterEnvMapPSO;
+	ID3D12PipelineState* quadPSO;
 
 	CDescriptorHeapWrapper cbvsrvHeap;
 	CDescriptorHeapWrapper dsvHeap;
@@ -46,6 +59,7 @@ private:
 	void CreateRootSignature();
 	void CreatePSO();
 	void CreateLightPassPSO();
+	void CreateScreenQuadPSO();
 	void CreateLightPassPSOShape(std::wstring shapeShader);
 	void CreateRTV();
 	void CreateDSV();
@@ -61,12 +75,13 @@ private:
 	static const int PixelConstantBufferSize = (sizeof(PSConstantBuffer) + 255) & ~255;
 
 	DXGI_FORMAT mDsvFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	DXGI_FORMAT mRtvFormat[6] = {	DXGI_FORMAT_R8G8B8A8_UNORM,
-									DXGI_FORMAT_R8G8B8A8_SNORM, 
-									DXGI_FORMAT_R32G32B32A32_FLOAT,
-									DXGI_FORMAT_R11G11B10_FLOAT,
-									DXGI_FORMAT_R8_UNORM,
-									DXGI_FORMAT_R8G8B8A8_UNORM };
+	DXGI_FORMAT mRtvFormat[7] = {	DXGI_FORMAT_R8G8B8A8_UNORM, //Albedo
+									DXGI_FORMAT_R8G8B8A8_SNORM, //Normal
+									DXGI_FORMAT_R32G32B32A32_FLOAT, //WorldPos
+									DXGI_FORMAT_R11G11B10_FLOAT, //Roughness
+									DXGI_FORMAT_R8_UNORM,	//Metalness
+									DXGI_FORMAT_R8G8B8A8_UNORM, //Lightpass
+									DXGI_FORMAT_R32G32B32A32_FLOAT }; //Final
 	GameObject* gameObj;
 	Camera* camera;
 	Mesh* sphereMesh;
@@ -86,5 +101,6 @@ public:
 	void DrawLightPass(ID3D12GraphicsCommandList * commandList);
 	void RenderSkybox(ID3D12GraphicsCommandList * command, D3D12_CPU_DESCRIPTOR_HANDLE &rtvHandle, int skyboxIndex);
 	void SetPBRTextures(ID3D12Resource* irradianceTextureCube, ID3D12Resource* prefilterTextureCube, ID3D12Resource* brdf);
+	void DrawResult(ID3D12GraphicsCommandList* commandList, D3D12_CPU_DESCRIPTOR_HANDLE & rtvHandle);
 };
 

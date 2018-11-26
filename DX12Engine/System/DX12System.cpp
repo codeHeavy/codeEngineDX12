@@ -753,14 +753,15 @@ void DX12System::UpdatePipeline()
 
 	// Draw call
 	Draw();
-	commandList->OMSetRenderTargets(1, &rtvHandle, true, nullptr);
-	commandList->ClearRenderTargetView(rtvHandle, clearColor, FALSE, nullptr);
+	//commandList->OMSetRenderTargets(1, &rtvHandle, true, nullptr);
+	//commandList->ClearRenderTargetView(rtvHandle, clearColor, FALSE, nullptr);
 
 	deferredRenderer->ApplyLightingPSO(commandList,true,PSCBuffer);
 	deferredRenderer->DrawLightPass(commandList);
 
 
 	deferredRenderer->RenderSkybox(commandList, rtvHandle, skyIndex);
+	deferredRenderer->DrawResult(commandList, rtvHandle);
 //	compute->SetShader(commandList);
 	compute->Dispatch(commandList);
 	// transition render target from render target state to curtrrent state

@@ -149,10 +149,11 @@ Texture2D gWorldPosTexture		: register(t2);
 Texture2D gRoughnessTexture		: register(t3);
 Texture2D gMetalnessTexture		: register(t4);
 Texture2D gLightShapePass		: register(t5);
-Texture2D gDepth				: register(t6);
-TextureCube irradianceTexture	: register(t7);
-Texture2D brdfTexture			: register(t8);
-TextureCube prefilterTexture	: register(t9);
+// t6 = quad texture
+Texture2D gDepth				: register(t7);
+TextureCube irradianceTexture	: register(t8);
+Texture2D brdfTexture			: register(t9);
+TextureCube prefilterTexture	: register(t10);
 SamplerState s1 : register(s0);
 
 float3 PrefilteredColor(float3 viewDir, float3 normal, float roughness, TextureCube prefilter)

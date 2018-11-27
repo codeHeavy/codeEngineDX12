@@ -762,7 +762,6 @@ void DX12System::UpdatePipeline()
 
 	deferredRenderer->RenderSkybox(commandList, rtvHandle, skyIndex);
 	deferredRenderer->DrawResult(commandList, rtvHandle);
-//	compute->SetShader(commandList);
 	compute->Dispatch(commandList);
 	// transition render target from render target state to curtrrent state
 	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTargets[frameIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));

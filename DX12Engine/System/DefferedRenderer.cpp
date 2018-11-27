@@ -383,7 +383,7 @@ void DefferedRenderer::CreateDSV()
 	descSRV.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
 
-	device->CreateShaderResourceView(depthStencilTexture, &descSRV, cbvsrvHeap.hCPU(RTV_ORDER_COUNT));
+	device->CreateShaderResourceView(depthStencilTexture, &descSRV, cbvsrvHeap.hCPU(RTV_NUM));
 }
 
 void DefferedRenderer::ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool bSetPSO, GameObject* _gameObj, Camera* _camera, const PSConstantBuffer& pixelCb,int textureIndex)
@@ -415,10 +415,10 @@ void DefferedRenderer::ApplyLightingPSO(ID3D12GraphicsCommandList * command, boo
 	for (int i = 0; i < numRTV; i++)
 		command->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rtvTextures[i], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_GENERIC_READ));
 
-	command->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rtvTextures[RTV_ORDER_QUAD], D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_RENDER_TARGET));
+	command->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rtvTextures[QUAD_INDEX], D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	command->SetPipelineState(lightPassPSO);
 
-	command->OMSetRenderTargets(1, &rtvHeap.hCPU(RTV_ORDER_QUAD), true, nullptr);
+	command->OMSetRenderTargets(1, &rtvHeap.hCPU(QUAD_INDEX), true, nullptr);
 
 	ID3D12DescriptorHeap* ppHeap2[] = { pcbHeap.pDH.Get() };
 	command->SetDescriptorHeaps(1, ppHeap2);
@@ -435,13 +435,13 @@ void DefferedRenderer::ApplyLightingShapePSO(ID3D12GraphicsCommandList * command
 	for (int i = 0; i < numRTV; i++)
 		command->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rtvTextures[i], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_GENERIC_READ));
 
-	command->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rtvTextures[RTV_ORDER_LIGHTSHAPE], D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_RENDER_TARGET));
+	command->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rtvTextures[LIGHTSHAPE_INDEX], D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	
 	//command->ClearRenderTargetView(rtvHeap.hCPU(numRTV-1), mClearColor, 0, nullptr);
 	//command->OMSetRenderTargets(1, &rtvHeap.hCPU(numRTV-1), true, nullptr);
 	
-	command->ClearRenderTargetView(rtvHeap.hCPU(RTV_ORDER_LIGHTSHAPE), mClearColor, 0, nullptr);
-	command->OMSetRenderTargets(1, &rtvHeap.hCPU(RTV_ORDER_LIGHTSHAPE), true, nullptr);
+	command->ClearRenderTargetView(rtvHeap.hCPU(LIGHTSHAPE_INDEX), mClearColor, 0, nullptr);
+	command->OMSetRenderTargets(1, &rtvHeap.hCPU(LIGHTSHAPE_INDEX), true, nullptr);
 	command->SetPipelineState(lightPassShapePSO);
 
 	ID3D12DescriptorHeap* ppHeap2[] = { pcbHeap.pDH.Get() };
@@ -496,7 +496,7 @@ void DefferedRenderer::RenderLightShape(ID3D12GraphicsCommandList * command, con
 	command->IASetIndexBuffer(&sphereObject.GetMesh()->GetiBufferView());
 	command->DrawIndexedInstanced(sphereObject.GetMesh()->GetNumIndices(), 1, 0, 0, 0);
 
-	command->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rtvTextures[RTV_ORDER_LIGHTSHAPE], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_GENERIC_READ));
+	command->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rtvTextures[LIGHTSHAPE_INDEX], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_GENERIC_READ));
 }
 
 void DefferedRenderer::SetSRV(ID3D12Resource* textureSRV, DXGI_FORMAT format, int index)
@@ -582,7 +582,7 @@ void DefferedRenderer::RenderSkybox(ID3D12GraphicsCommandList * command, D3D12_C
 {
 	command->SetPipelineState(skyBoxPSO);
 	//command->OMSetRenderTargets(1, &rtvHandle, true, &dsvHeap.hCPUHeapStart);
-	command->OMSetRenderTargets(1, &rtvHeap.hCPU(RTV_ORDER_QUAD), true, &dsvHeap.hCPUHeapStart);
+	command->OMSetRenderTargets(1, &rtvHeap.hCPU(QUAD_INDEX), true, &dsvHeap.hCPUHeapStart);
 	ID3D12DescriptorHeap* ppHeaps[] = { cbHeap.pDH.Get() };
 	ID3D12DescriptorHeap* ppSrvHeaps[] = { srvHeap.pDH.Get() };
 	
@@ -639,12 +639,12 @@ void DefferedRenderer::SetPBRTextures(ID3D12Resource* irradianceTextureCube, ID3
 
 void DefferedRenderer::DrawResult(ID3D12GraphicsCommandList* commandList, D3D12_CPU_DESCRIPTOR_HANDLE & rtvHandle)
 {
-	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rtvTextures[RTV_ORDER_QUAD], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_GENERIC_READ));
+	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rtvTextures[QUAD_INDEX], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_GENERIC_READ));
 	commandList->ClearRenderTargetView(rtvHandle, mClearColor, 0, nullptr);
 	commandList->OMSetRenderTargets(1, &rtvHandle, true, nullptr);
 	commandList->SetPipelineState(quadPSO);
 	ID3D12DescriptorHeap* ppHeaps[] = { cbvsrvHeap.pDH.Get() };
 	commandList->SetDescriptorHeaps(1, ppHeaps);
-	commandList->SetGraphicsRootDescriptorTable(2, cbvsrvHeap.hGPU(RTV_ORDER_QUAD));
+	commandList->SetGraphicsRootDescriptorTable(2, cbvsrvHeap.hGPU(QUAD_INDEX));
 	DrawLightPass(commandList); // Draws full screen quad with null vertex buffer.
 }

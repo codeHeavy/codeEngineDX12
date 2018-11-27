@@ -1,6 +1,6 @@
 #include "ComputeDispatch.h"
 
-ComputeDispatch::ComputeDispatch(ID3D12Device1* device, UINT width, UINT height) : device(device), viewWidth(width), viewHeight(height)
+ComputeDispatch::ComputeDispatch(ID3D12Device1* device, UINT width, UINT height, std::wstring shader) : device(device), viewWidth(width), viewHeight(height), shaderName(shader)
 {
 	Init();
 }
@@ -27,9 +27,10 @@ void ComputeDispatch::CreateRootSignature()
 	CD3DX12_ROOT_PARAMETER rootParameters[3];
 	rootParameters[0].InitAsDescriptorTable(1, &range[0], D3D12_SHADER_VISIBILITY_ALL);
 	rootParameters[1].InitAsDescriptorTable(1, &range[1], D3D12_SHADER_VISIBILITY_ALL);
+	rootParameters[2].InitAsConstants(4, 0);
 
 	CD3DX12_ROOT_SIGNATURE_DESC descRootSignature;
-	descRootSignature.Init(2, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+	descRootSignature.Init(3, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
 		D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
 		D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
 		D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
@@ -52,7 +53,7 @@ void ComputeDispatch::CreatePipelineStateObject()
 {
 	D3D12_COMPUTE_PIPELINE_STATE_DESC computeDesc = {};
 	computeDesc.pRootSignature = rootSignature;
-	computeDesc.CS = ShaderManager::LoadShader(L"ComputeShaderDefault.cso");
+	computeDesc.CS = ShaderManager::LoadShader(shaderName.c_str());
 
 	device->CreateComputePipelineState(&computeDesc, IID_PPV_ARGS(&computePSO));
 }
@@ -99,7 +100,11 @@ void ComputeDispatch::SetUAV( int index)
 	device->CreateUnorderedAccessView(textureUAV.Get(), nullptr, &uavDesc, uavHeap.hCPU(index));
 }
 
-void ComputeDispatch::Dispatch(ID3D12GraphicsCommandList* commandList)
+void ComputeDispatch::SetConstant(int index, float value)
+{
+}
+
+void ComputeDispatch::Dispatch(ID3D12GraphicsCommandList* commandList, int constValue)
 {
 	//commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(NULL));
 	ID3D12DescriptorHeap* ppHeaps1[] = { srvHeap.pDH.Get() };
@@ -107,11 +112,12 @@ void ComputeDispatch::Dispatch(ID3D12GraphicsCommandList* commandList)
 	commandList->SetComputeRootSignature(rootSignature);
 	commandList->SetDescriptorHeaps(1,ppHeaps1);
 	commandList->SetComputeRootDescriptorTable(0, srvHeap.hGPU(0));
+	commandList->SetComputeRoot32BitConstants(2, 1, &constValue,0);
 	commandList->SetDescriptorHeaps(1, ppHeaps2);
 	commandList->SetComputeRootDescriptorTable(1, uavHeap.hGPU(0));
 	commandList->SetPipelineState(computePSO);
 
-	commandList->Dispatch(1024, 720, 1);
+	commandList->Dispatch(viewWidth, viewHeight, 1);
 }
 
 CDescriptorHeapWrapper& ComputeDispatch::GetResultDescriptor()

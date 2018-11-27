@@ -130,10 +130,16 @@
     <FxCompile Include="Shaders\SkyVS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="Shaders\ComputeShaderDefault.hlsl">
+    <FxCompile Include="Shaders\ScreenQuadPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="Shaders\ScreenQuadPS.hlsl">
+    <FxCompile Include="Shaders\DesaturateShader.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\DefaultComputeShader.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\IntensityShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

@@ -638,15 +638,24 @@ void DefferedRenderer::SetPBRTextures(ID3D12Resource* irradianceTextureCube, ID3
 	device->CreateShaderResourceView(prefilterTextureCube, &srvDesc, cbvsrvHeap.hCPU(prefilterTexIndex));
 }
 
-void DefferedRenderer::DrawFinal(ID3D12GraphicsCommandList* commandList, D3D12_CPU_DESCRIPTOR_HANDLE & rtvHandle, CDescriptorHeapWrapper &uavHeap)
+void DefferedRenderer::DrawFinal(ID3D12GraphicsCommandList* commandList, D3D12_CPU_DESCRIPTOR_HANDLE & rtvHandle, CDescriptorHeapWrapper &uavHeap, bool postProcess)
 {
 	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rtvTextures[QUAD_INDEX], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_GENERIC_READ));
 	commandList->ClearRenderTargetView(rtvHandle, mClearColor, 0, nullptr);
 	commandList->OMSetRenderTargets(1, &rtvHandle, true, nullptr);
 	commandList->SetPipelineState(quadPSO);
-	ID3D12DescriptorHeap* ppHeaps[] = { uavHeap.pDH.Get() };
-	commandList->SetDescriptorHeaps(1, ppHeaps);
-	commandList->SetGraphicsRootDescriptorTable(2, uavHeap.hGPU(0));
+	if (postProcess)
+	{
+		ID3D12DescriptorHeap* ppHeaps[] = { uavHeap.pDH.Get() };
+		commandList->SetDescriptorHeaps(1, ppHeaps);
+		commandList->SetGraphicsRootDescriptorTable(2, uavHeap.hGPU(0));
+	}
+	else
+	{
+		ID3D12DescriptorHeap* ppHeaps[] = { cbvsrvHeap.pDH.Get() };
+		commandList->SetDescriptorHeaps(1, ppHeaps);
+		commandList->SetGraphicsRootDescriptorTable(2, cbvsrvHeap.hGPU(QUAD_INDEX));
+	}
 	DrawLightPass(commandList); // Draws full screen quad with null vertex buffer.
 }
 

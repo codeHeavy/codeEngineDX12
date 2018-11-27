@@ -641,9 +641,15 @@ void DX12System::BuildViewProjMatrix()
 	camera->UpdateProjectionMatrix(width, height);
 	PSCBuffer.CamPos = DirectX::XMFLOAT3(camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z);
 	
-	compute = new ComputeDispatch(device,width,height);
-	compute->SetSRV(deferredRenderer->GetFinalTexture(), 0);
-	compute->SetUAV(0);
+	compute.push_back( new ComputeDispatch(device,width,height, L"DesaturateShader.cso"));
+	compute.push_back( new ComputeDispatch(device,width,height, L"DefaultComputeShader.cso"));
+	compute.push_back( new ComputeDispatch(device,width,height, L"IntensityShader.cso"));
+	for (auto& c : compute)
+	{
+		c->SetSRV(deferredRenderer->GetFinalTexture(), 0);
+		c->SetUAV(0);
+	}
+
 	// first cube
 	cube1 = new GameObject(mesh);
 	cube1->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
@@ -668,7 +674,9 @@ bool DX12System::KeyReleased(int key)
 	return !(keys[key] & 0x80) && (prevKeys[key] & 0x80);
 }
 
-
+bool postProcess = false;
+int effects = 0;
+int intensity = 2;
 //----------------------------------------------------------------------
 //	Update
 //----------------------------------------------------------------------
@@ -686,6 +694,28 @@ void DX12System::Update()
 			textureIndex = 0;
 		}
 
+	}
+	if (KeyPressed(0x50)) // P - key
+	{
+		postProcess = !postProcess;
+	}
+	if (KeyPressed(VK_CONTROL))
+	{
+		effects++;
+		if (effects > compute.size()-1)
+			effects = 0;
+	}
+	if (KeyPressed(VK_ADD))
+	{
+		intensity++;
+		if (intensity == 0)
+			intensity++;
+	}
+	if (KeyPressed(VK_SUBTRACT))
+	{
+		intensity--;
+		if (intensity <= 0)
+			intensity = 1;
 	}
 	if (KeyDown(VK_RIGHT))
 	{
@@ -761,8 +791,12 @@ void DX12System::UpdatePipeline()
 
 
 	deferredRenderer->RenderSkybox(commandList, rtvHandle, skyIndex);
-	compute->Dispatch(commandList);
-	deferredRenderer->DrawFinal(commandList, rtvHandle, compute->GetResultDescriptor());
+	if (postProcess) 
+	{
+		compute[effects]->Dispatch(commandList,intensity);
+	}
+	deferredRenderer->DrawFinal(commandList, rtvHandle, compute[effects]->GetResultDescriptor(), postProcess);
+	
 	// transition render target from render target state to curtrrent state
 	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTargets[frameIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
 	hr = commandList->Close();	// resets to recording state

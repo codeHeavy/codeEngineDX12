@@ -102,7 +102,7 @@ public:
 	void DrawLightPass(ID3D12GraphicsCommandList * commandList);
 	void RenderSkybox(ID3D12GraphicsCommandList * command, D3D12_CPU_DESCRIPTOR_HANDLE &rtvHandle, int skyboxIndex);
 	void SetPBRTextures(ID3D12Resource* irradianceTextureCube, ID3D12Resource* prefilterTextureCube, ID3D12Resource* brdf);
-	void DrawFinal(ID3D12GraphicsCommandList* commandList, D3D12_CPU_DESCRIPTOR_HANDLE & rtvHandle, CDescriptorHeapWrapper &uavHeap);
+	void DrawFinal(ID3D12GraphicsCommandList* commandList, D3D12_CPU_DESCRIPTOR_HANDLE & rtvHandle, CDescriptorHeapWrapper &uavHeap, bool postProcess);
 
 	ID3D12Resource* GetFinalTexture();
 };

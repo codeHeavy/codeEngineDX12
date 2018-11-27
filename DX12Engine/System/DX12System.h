@@ -13,6 +13,7 @@
 #include "DirectXHelpers.h"
 #include "Windowsx.h"
 #include "ComputeDispatch.h"
+#include <vector>
 
 #ifndef BUFFERCOUNT
 #define BUFFERCOUNT 3
@@ -155,5 +156,5 @@ public:
 	bool KeyReleased(int key);
 	int textureIndex = 0;
 
-	ComputeDispatch* compute;
+	std::vector<ComputeDispatch*> compute;
 };

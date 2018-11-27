@@ -30,6 +30,7 @@ private:
 	ID3D12Resource* lightCB;
 	ID3D12Resource* rtvTextures[numRTV];
 	ID3D12Resource* depthStencilTexture;
+	ID3D12Resource* finalTexture;
 
 	ID3D12PipelineState* pipelineStateObject;
 	ID3D12PipelineState* lightPassPSO;
@@ -101,6 +102,8 @@ public:
 	void DrawLightPass(ID3D12GraphicsCommandList * commandList);
 	void RenderSkybox(ID3D12GraphicsCommandList * command, D3D12_CPU_DESCRIPTOR_HANDLE &rtvHandle, int skyboxIndex);
 	void SetPBRTextures(ID3D12Resource* irradianceTextureCube, ID3D12Resource* prefilterTextureCube, ID3D12Resource* brdf);
-	void DrawResult(ID3D12GraphicsCommandList* commandList, D3D12_CPU_DESCRIPTOR_HANDLE & rtvHandle);
+	void DrawFinal(ID3D12GraphicsCommandList* commandList, D3D12_CPU_DESCRIPTOR_HANDLE & rtvHandle, CDescriptorHeapWrapper &uavHeap);
+
+	ID3D12Resource* GetFinalTexture();
 };
 

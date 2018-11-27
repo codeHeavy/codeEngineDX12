@@ -14,9 +14,11 @@ private:
 	CDescriptorHeapWrapper srvHeap;
 	CDescriptorHeapWrapper uavHeap;
 	Microsoft::WRL::ComPtr<ID3D12Resource> textureUAV;
+	UINT viewWidth;
+	UINT viewHeight;
 public:
 	ComputeDispatch() {};
-	ComputeDispatch(ID3D12Device1* device);
+	ComputeDispatch(ID3D12Device1* device, UINT width, UINT height);
 	~ComputeDispatch();
 	void Init();
 	void CreateRootSignature();
@@ -25,5 +27,6 @@ public:
 	void SetSRV(ID3D12Resource* textureSRV, int index);
 	void SetUAV(int index);
 	void Dispatch(ID3D12GraphicsCommandList* commandList);
+	CDescriptorHeapWrapper& GetResultDescriptor();
 };
 

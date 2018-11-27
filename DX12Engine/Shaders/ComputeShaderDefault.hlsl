@@ -5,5 +5,5 @@ RWTexture2D<float4> output;
 void main( uint3 DTid : SV_DispatchThreadID )
 {
 	float i = image[DTid.xy];
-	//output[DTid.xy] = image[DTid.xy];
+	output[DTid.xy] = image[DTid.xy];
 }

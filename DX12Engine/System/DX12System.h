@@ -38,8 +38,8 @@ public:
 	LPCWSTR windowTitle = L"codeEngineDX12";	// Window title
 
 	// Size of the window
-	int height = 600;
-	int width = 800;
+	int height = 1024;
+	int width = 720;
 
 	// Window properties
 	bool fullscreen = false;

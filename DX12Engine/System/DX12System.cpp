@@ -641,8 +641,8 @@ void DX12System::BuildViewProjMatrix()
 	camera->UpdateProjectionMatrix(width, height);
 	PSCBuffer.CamPos = DirectX::XMFLOAT3(camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z);
 	
-	compute = new ComputeDispatch(device);
-	compute->SetSRV(albedoList[0]->GetTexture(), 0);
+	compute = new ComputeDispatch(device,width,height);
+	compute->SetSRV(deferredRenderer->GetFinalTexture(), 0);
 	compute->SetUAV(0);
 	// first cube
 	cube1 = new GameObject(mesh);
@@ -761,8 +761,8 @@ void DX12System::UpdatePipeline()
 
 
 	deferredRenderer->RenderSkybox(commandList, rtvHandle, skyIndex);
-	deferredRenderer->DrawResult(commandList, rtvHandle);
 	compute->Dispatch(commandList);
+	deferredRenderer->DrawFinal(commandList, rtvHandle, compute->GetResultDescriptor());
 	// transition render target from render target state to curtrrent state
 	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTargets[frameIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
 	hr = commandList->Close();	// resets to recording state

@@ -1,6 +1,6 @@
 #include "ComputeDispatch.h"
 
-ComputeDispatch::ComputeDispatch(ID3D12Device1* device) : device(device)
+ComputeDispatch::ComputeDispatch(ID3D12Device1* device, UINT width, UINT height) : device(device), viewWidth(width), viewHeight(height)
 {
 	Init();
 }
@@ -70,8 +70,8 @@ void ComputeDispatch::SetUAV( int index)
 	ZeroMemory(&texDesc, sizeof(D3D12_RESOURCE_DESC));
 	texDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	texDesc.Alignment = 0;
-	texDesc.Width = 1024;
-	texDesc.Height = 720;
+	texDesc.Width = viewWidth;
+	texDesc.Height = viewHeight;
 	texDesc.DepthOrArraySize = 1;
 	texDesc.MipLevels = 1;
 	texDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -101,11 +101,20 @@ void ComputeDispatch::SetUAV( int index)
 
 void ComputeDispatch::Dispatch(ID3D12GraphicsCommandList* commandList)
 {
-	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(NULL));
+	//commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(NULL));
+	ID3D12DescriptorHeap* ppHeaps1[] = { srvHeap.pDH.Get() };
+	ID3D12DescriptorHeap* ppHeaps2[] = { uavHeap.pDH.Get() };
 	commandList->SetComputeRootSignature(rootSignature);
+	commandList->SetDescriptorHeaps(1,ppHeaps1);
 	commandList->SetComputeRootDescriptorTable(0, srvHeap.hGPU(0));
+	commandList->SetDescriptorHeaps(1, ppHeaps2);
 	commandList->SetComputeRootDescriptorTable(1, uavHeap.hGPU(0));
 	commandList->SetPipelineState(computePSO);
 
-	commandList->Dispatch(16, 16, 1);
+	commandList->Dispatch(1024, 720, 1);
+}
+
+CDescriptorHeapWrapper& ComputeDispatch::GetResultDescriptor()
+{
+	return uavHeap;
 }

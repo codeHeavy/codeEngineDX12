@@ -308,7 +308,9 @@ void DefferedRenderer::CreateRTV()
 		clearVal.Format = mRtvFormat[i];
 		device->CreateCommittedResource(&heapProperty, D3D12_HEAP_FLAG_NONE, &resourceDesc, D3D12_RESOURCE_STATE_RENDER_TARGET, &clearVal, IID_PPV_ARGS(&rtvTextures[i]));
 	}
-
+	device->CreateCommittedResource(&heapProperty, D3D12_HEAP_FLAG_NONE, &resourceDesc, D3D12_RESOURCE_STATE_RENDER_TARGET, &clearVal, IID_PPV_ARGS(&finalTexture));
+	finalTexture = rtvTextures[QUAD_INDEX];
+	
 	D3D12_RENDER_TARGET_VIEW_DESC desc;
 	ZeroMemory(&desc, sizeof(desc));
 	desc.Texture2D.MipSlice = 0;
@@ -611,7 +613,6 @@ void DefferedRenderer::RenderSkybox(ID3D12GraphicsCommandList * command, D3D12_C
 	command->IASetVertexBuffers(0, 1, &cubeObj.GetMesh()->GetvBufferView());
 	command->IASetIndexBuffer(&cubeObj.GetMesh()->GetiBufferView());
 	command->DrawIndexedInstanced(cubeObj.GetMesh()->GetNumIndices(), 1, 0, 0, 0);
-
 }
 
 void DefferedRenderer::SetPBRTextures(ID3D12Resource* irradianceTextureCube, ID3D12Resource* prefilterTextureCube, ID3D12Resource* brdf)
@@ -637,14 +638,19 @@ void DefferedRenderer::SetPBRTextures(ID3D12Resource* irradianceTextureCube, ID3
 	device->CreateShaderResourceView(prefilterTextureCube, &srvDesc, cbvsrvHeap.hCPU(prefilterTexIndex));
 }
 
-void DefferedRenderer::DrawResult(ID3D12GraphicsCommandList* commandList, D3D12_CPU_DESCRIPTOR_HANDLE & rtvHandle)
+void DefferedRenderer::DrawFinal(ID3D12GraphicsCommandList* commandList, D3D12_CPU_DESCRIPTOR_HANDLE & rtvHandle, CDescriptorHeapWrapper &uavHeap)
 {
 	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rtvTextures[QUAD_INDEX], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_GENERIC_READ));
 	commandList->ClearRenderTargetView(rtvHandle, mClearColor, 0, nullptr);
 	commandList->OMSetRenderTargets(1, &rtvHandle, true, nullptr);
 	commandList->SetPipelineState(quadPSO);
-	ID3D12DescriptorHeap* ppHeaps[] = { cbvsrvHeap.pDH.Get() };
+	ID3D12DescriptorHeap* ppHeaps[] = { uavHeap.pDH.Get() };
 	commandList->SetDescriptorHeaps(1, ppHeaps);
-	commandList->SetGraphicsRootDescriptorTable(2, cbvsrvHeap.hGPU(QUAD_INDEX));
+	commandList->SetGraphicsRootDescriptorTable(2, uavHeap.hGPU(0));
 	DrawLightPass(commandList); // Draws full screen quad with null vertex buffer.
+}
+
+ID3D12Resource* DefferedRenderer::GetFinalTexture()
+{
+	return finalTexture;
 }

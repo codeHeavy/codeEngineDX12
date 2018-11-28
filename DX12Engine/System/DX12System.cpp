@@ -641,8 +641,9 @@ void DX12System::BuildViewProjMatrix()
 	camera->UpdateProjectionMatrix(width, height);
 	PSCBuffer.CamPos = DirectX::XMFLOAT3(camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z);
 	
-	compute.push_back( new ComputeDispatch(device,width,height, L"DesaturateShader.cso"));
 	compute.push_back( new ComputeDispatch(device,width,height, L"DefaultComputeShader.cso"));
+	compute.push_back( new ComputeDispatch(device,width,height, L"VignetteShader.cso"));
+	compute.push_back( new ComputeDispatch(device,width,height, L"DesaturateShader.cso"));
 	compute.push_back( new ComputeDispatch(device,width,height, L"IntensityShader.cso"));
 	compute.push_back( new ComputeDispatch(device,width,height, L"BlurShader.cso"));
 	for (auto& c : compute)
@@ -708,9 +709,9 @@ void DX12System::Update()
 	}
 	if (KeyPressed(VK_ADD))
 	{
-		intensity++;
+		intensity ++;
 		if (intensity == 0)
-			intensity++;
+			intensity = 1;
 	}
 	if (KeyPressed(VK_SUBTRACT))
 	{

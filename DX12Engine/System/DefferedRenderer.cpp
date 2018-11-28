@@ -663,3 +663,8 @@ ID3D12Resource* DefferedRenderer::GetFinalTexture()
 {
 	return finalTexture;
 }
+
+ID3D12Resource * DefferedRenderer::GetWorldPosTexture()
+{
+	return rtvTextures[WORLDPOS_INDEX];
+}

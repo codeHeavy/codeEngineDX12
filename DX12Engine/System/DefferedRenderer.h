@@ -105,5 +105,6 @@ public:
 	void DrawFinal(ID3D12GraphicsCommandList* commandList, D3D12_CPU_DESCRIPTOR_HANDLE & rtvHandle, CDescriptorHeapWrapper &uavHeap, bool postProcess);
 
 	ID3D12Resource* GetFinalTexture();
+	ID3D12Resource* GetWorldPosTexture();
 };
 

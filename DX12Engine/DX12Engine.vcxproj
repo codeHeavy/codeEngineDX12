@@ -154,6 +154,7 @@
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="System\Camera.h" />
+    <ClInclude Include="System\MotionBlur.h" />
     <ClInclude Include="System\PostProcessFilter.h" />
     <ClInclude Include="System\ConstantBuffer.h" />
     <ClInclude Include="System\DefferedRenderer.h" />
@@ -176,6 +177,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdafx.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="System\Camera.cpp" />
+    <ClCompile Include="System\MotionBlur.cpp" />
     <ClCompile Include="System\PostProcessFilter.cpp" />
     <ClCompile Include="System\DefferedRenderer.cpp" />
     <ClCompile Include="System\DirectxHelper.cpp" />
@@ -212,6 +214,10 @@
     </FxCompile>
     <FxCompile Include="Shaders\LightShapePS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="Shaders\MotionBlurShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="Shaders\PixelShader.hlsl">

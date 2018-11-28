@@ -47,6 +47,8 @@ void PostProcessFilter::CreateRootSignature()
 	//device->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
 	
 	DirectX::CreateRootSignature(device, &descRootSignature, &rootSignature);
+	srvHeap.Create(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 8, true);
+	uavHeap.Create(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 8, true);
 }
 
 void PostProcessFilter::CreatePipelineStateObject()
@@ -60,7 +62,7 @@ void PostProcessFilter::CreatePipelineStateObject()
 
 void PostProcessFilter::SetSRV(ID3D12Resource* textureSRV, int index)
 {
-	srvHeap.Create(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 8, true);
+	
 	DirectX::CreateShaderResourceView(device, textureSRV, srvHeap.hCPU(index), false);
 }
 
@@ -87,7 +89,7 @@ void PostProcessFilter::SetUAV( int index)
 		nullptr,
 		IID_PPV_ARGS(&textureUAV));
 	
-	uavHeap.Create(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 8, true);
+
 
 	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
 	uavDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;

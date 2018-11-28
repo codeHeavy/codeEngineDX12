@@ -14,6 +14,7 @@
 #include "Windowsx.h"
 #include "PostProcessFilter.h"
 #include <vector>
+#include "MotionBlur.h"
 
 #ifndef BUFFERCOUNT
 #define BUFFERCOUNT 3
@@ -157,4 +158,9 @@ public:
 	int textureIndex = 0;
 
 	std::vector<PostProcessFilter*> postProcessFilters;
+	DirectX::XMFLOAT4X4 prevViewProj;
+	ID3D12Resource* prevWorldPos;
+	ID3D12Resource* currentWorldPos;
+
+	MotionBlur* motionBlur;
 };

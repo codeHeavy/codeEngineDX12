@@ -641,6 +641,11 @@ void DX12System::BuildViewProjMatrix()
 	camera->UpdateProjectionMatrix(width, height);
 	PSCBuffer.CamPos = DirectX::XMFLOAT3(camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z);
 	
+	motionBlur = new MotionBlur(device, width, height, L"MotionBlurShader.cso");
+	motionBlur->SetSRV(deferredRenderer->GetFinalTexture(), 0);
+	motionBlur->SetSRV(deferredRenderer->GetWorldPosTexture(), 1);
+	motionBlur->SetUAV(0);
+
 	postProcessFilters.push_back( new PostProcessFilter(device,width,height, L"DefaultComputeShader.cso"));
 	postProcessFilters.push_back( new PostProcessFilter(device,width,height, L"VignetteShader.cso"));
 	postProcessFilters.push_back( new PostProcessFilter(device,width,height, L"DesaturateShader.cso"));
@@ -684,6 +689,10 @@ int intensity = 2;
 //----------------------------------------------------------------------
 void DX12System::Update()
 {
+	XMMATRIX viewMat = XMLoadFloat4x4(&camera->GetViewMatrix());					// load view matrix
+	XMMATRIX projMat = XMLoadFloat4x4(&camera->GetProjectionMatrix());				// load projection matrix
+	XMMATRIX vpMat = viewMat * projMat; // create wvp matrix
+	XMStoreFloat4x4(&prevViewProj, XMMatrixTranspose(vpMat));
 	// Save old keys and grab new ones
 	memcpy(prevKeys, keys, sizeof(keys));
 	GetKeyboardState(keys);
@@ -793,11 +802,13 @@ void DX12System::UpdatePipeline()
 
 
 	deferredRenderer->RenderSkybox(commandList, rtvHandle, skyIndex);
+	motionBlur->Dispatch(commandList, intensity);
 	if (postProcessOn) 
 	{
 		postProcessFilters[effects]->Dispatch(commandList,intensity);
 	}
-	deferredRenderer->DrawFinal(commandList, rtvHandle, postProcessFilters[effects]->GetResultDescriptor(), postProcessOn);
+	deferredRenderer->DrawFinal(commandList, rtvHandle, motionBlur->GetResultDescriptor(), postProcessOn);
+	//deferredRenderer->DrawFinal(commandList, rtvHandle, postProcessFilters[effects]->GetResultDescriptor(), postProcessOn);
 	
 	// transition render target from render target state to curtrrent state
 	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTargets[frameIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));

@@ -12,7 +12,7 @@
 #include "ResourceUploadBatch.h"
 #include "DirectXHelpers.h"
 #include "Windowsx.h"
-#include "ComputeDispatch.h"
+#include "PostProcessFilter.h"
 #include <vector>
 
 #ifndef BUFFERCOUNT
@@ -156,5 +156,5 @@ public:
 	bool KeyReleased(int key);
 	int textureIndex = 0;
 
-	std::vector<ComputeDispatch*> compute;
+	std::vector<PostProcessFilter*> postProcessFilters;
 };

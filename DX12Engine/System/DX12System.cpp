@@ -641,15 +641,15 @@ void DX12System::BuildViewProjMatrix()
 	camera->UpdateProjectionMatrix(width, height);
 	PSCBuffer.CamPos = DirectX::XMFLOAT3(camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z);
 	
-	compute.push_back( new ComputeDispatch(device,width,height, L"DefaultComputeShader.cso"));
-	compute.push_back( new ComputeDispatch(device,width,height, L"VignetteShader.cso"));
-	compute.push_back( new ComputeDispatch(device,width,height, L"DesaturateShader.cso"));
-	compute.push_back( new ComputeDispatch(device,width,height, L"IntensityShader.cso"));
-	compute.push_back( new ComputeDispatch(device,width,height, L"BlurShader.cso"));
-	for (auto& c : compute)
+	postProcessFilters.push_back( new PostProcessFilter(device,width,height, L"DefaultComputeShader.cso"));
+	postProcessFilters.push_back( new PostProcessFilter(device,width,height, L"VignetteShader.cso"));
+	postProcessFilters.push_back( new PostProcessFilter(device,width,height, L"DesaturateShader.cso"));
+	postProcessFilters.push_back( new PostProcessFilter(device,width,height, L"IntensityShader.cso"));
+	postProcessFilters.push_back( new PostProcessFilter(device,width,height, L"BlurShader.cso"));
+	for (auto& p : postProcessFilters)
 	{
-		c->SetSRV(deferredRenderer->GetFinalTexture(), 0);
-		c->SetUAV(0);
+		p->SetSRV(deferredRenderer->GetFinalTexture(), 0);
+		p->SetUAV(0);
 	}
 
 	// first cube
@@ -676,7 +676,7 @@ bool DX12System::KeyReleased(int key)
 	return !(keys[key] & 0x80) && (prevKeys[key] & 0x80);
 }
 
-bool postProcess = true;
+bool postProcessOn = true;
 int effects = 0;
 int intensity = 2;
 //----------------------------------------------------------------------
@@ -699,12 +699,12 @@ void DX12System::Update()
 	}
 	if (KeyPressed(0x50)) // P - key
 	{
-		postProcess = !postProcess;
+		postProcessOn = !postProcessOn;
 	}
 	if (KeyPressed(VK_CONTROL))
 	{
 		effects++;
-		if (effects > compute.size()-1)
+		if (effects > postProcessFilters.size()-1)
 			effects = 0;
 	}
 	if (KeyPressed(VK_ADD))
@@ -793,11 +793,11 @@ void DX12System::UpdatePipeline()
 
 
 	deferredRenderer->RenderSkybox(commandList, rtvHandle, skyIndex);
-	if (postProcess) 
+	if (postProcessOn) 
 	{
-		compute[effects]->Dispatch(commandList,intensity);
+		postProcessFilters[effects]->Dispatch(commandList,intensity);
 	}
-	deferredRenderer->DrawFinal(commandList, rtvHandle, compute[effects]->GetResultDescriptor(), postProcess);
+	deferredRenderer->DrawFinal(commandList, rtvHandle, postProcessFilters[effects]->GetResultDescriptor(), postProcessOn);
 	
 	// transition render target from render target state to curtrrent state
 	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTargets[frameIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
@@ -900,8 +900,13 @@ void DX12System::Cleanup()
 
 	SAFE_RELEASE(skyTextureBuffer);
 	SAFE_RELEASE(skyIRTextureBuffer);
-	delete deferredRenderer;
+	
+	for (auto &p : postProcessFilters)
+	{
+		delete p;
+	}
 
+	delete deferredRenderer;
 	delete camera;
 	delete mesh;
 	delete cube1;

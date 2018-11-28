@@ -1,23 +1,23 @@
-#include "ComputeDispatch.h"
+#include "PostProcessFilter.h"
 
-ComputeDispatch::ComputeDispatch(ID3D12Device1* device, UINT width, UINT height, std::wstring shader) : device(device), viewWidth(width), viewHeight(height), shaderName(shader)
+PostProcessFilter::PostProcessFilter(ID3D12Device1* device, UINT width, UINT height, std::wstring shader) : device(device), viewWidth(width), viewHeight(height), shaderName(shader)
 {
 	Init();
 }
 
-void ComputeDispatch::Init()
+void PostProcessFilter::Init()
 {
 	CreateRootSignature();
 	CreatePipelineStateObject();
 }
 
-ComputeDispatch::~ComputeDispatch()
+PostProcessFilter::~PostProcessFilter()
 {
 	SAFE_RELEASE(rootSignature);
 	SAFE_RELEASE(computePSO);
 }
 
-void ComputeDispatch::CreateRootSignature()
+void PostProcessFilter::CreateRootSignature()
 {
 	//Init descriptor tables
 	CD3DX12_DESCRIPTOR_RANGE range[2];
@@ -49,7 +49,7 @@ void ComputeDispatch::CreateRootSignature()
 	DirectX::CreateRootSignature(device, &descRootSignature, &rootSignature);
 }
 
-void ComputeDispatch::CreatePipelineStateObject()
+void PostProcessFilter::CreatePipelineStateObject()
 {
 	D3D12_COMPUTE_PIPELINE_STATE_DESC computeDesc = {};
 	computeDesc.pRootSignature = rootSignature;
@@ -58,13 +58,13 @@ void ComputeDispatch::CreatePipelineStateObject()
 	device->CreateComputePipelineState(&computeDesc, IID_PPV_ARGS(&computePSO));
 }
 
-void ComputeDispatch::SetSRV(ID3D12Resource* textureSRV, int index)
+void PostProcessFilter::SetSRV(ID3D12Resource* textureSRV, int index)
 {
 	srvHeap.Create(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 8, true);
 	DirectX::CreateShaderResourceView(device, textureSRV, srvHeap.hCPU(index), false);
 }
 
-void ComputeDispatch::SetUAV( int index)
+void PostProcessFilter::SetUAV( int index)
 {
 	HRESULT hr;
 	D3D12_RESOURCE_DESC texDesc;
@@ -100,11 +100,11 @@ void ComputeDispatch::SetUAV( int index)
 	device->CreateUnorderedAccessView(textureUAV.Get(), nullptr, &uavDesc, uavHeap.hCPU(index));
 }
 
-void ComputeDispatch::SetConstant(int index, float value)
+void PostProcessFilter::SetConstant(int index, float value)
 {
 }
 
-void ComputeDispatch::Dispatch(ID3D12GraphicsCommandList* commandList, int constValue)
+void PostProcessFilter::Dispatch(ID3D12GraphicsCommandList* commandList, int constValue)
 {
 	//commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(NULL));
 	ID3D12DescriptorHeap* ppHeaps1[] = { srvHeap.pDH.Get() };
@@ -120,7 +120,7 @@ void ComputeDispatch::Dispatch(ID3D12GraphicsCommandList* commandList, int const
 	commandList->Dispatch(viewWidth/16, viewHeight/16, 1);
 }
 
-CDescriptorHeapWrapper& ComputeDispatch::GetResultDescriptor()
+CDescriptorHeapWrapper& PostProcessFilter::GetResultDescriptor()
 {
 	return uavHeap;
 }

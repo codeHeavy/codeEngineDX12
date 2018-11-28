@@ -4,7 +4,7 @@
 #include "DirectXHelpers.h"
 #include "DirectxHelper.h"
 #include "../Texture.h"
-class ComputeDispatch
+class PostProcessFilter
 {
 private:
 	ID3D12Device1* device;
@@ -18,9 +18,9 @@ private:
 	UINT viewHeight;
 	std::wstring shaderName;
 public:
-	ComputeDispatch() {};
-	ComputeDispatch(ID3D12Device1* device, UINT width, UINT height, std::wstring shader);
-	~ComputeDispatch();
+	PostProcessFilter() {};
+	PostProcessFilter(ID3D12Device1* device, UINT width, UINT height, std::wstring shader);
+	~PostProcessFilter();
 	void Init();
 	void CreateRootSignature();
 	void CreatePipelineStateObject();

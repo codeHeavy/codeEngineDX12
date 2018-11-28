@@ -1,8 +1,4 @@
 
-float pixelWidth = 1.0/1024;
-float pixelHeight = 1.0/720;
-int blurAmount = 5;
-
 cbuffer constants : register(b0)
 {
 	int intensity;

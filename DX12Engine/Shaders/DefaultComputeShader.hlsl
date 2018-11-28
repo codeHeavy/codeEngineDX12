@@ -1,7 +1,7 @@
 
 Texture2D image;
 RWTexture2D<float4> output;
-
+SamplerState s : register(s0);
 [numthreads(16, 16, 1)]
 void main(int3 groupThreadID : SV_GroupThreadID, uint3 DTid : SV_DispatchThreadID )
 {

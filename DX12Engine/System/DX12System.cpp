@@ -644,6 +644,7 @@ void DX12System::BuildViewProjMatrix()
 	compute.push_back( new ComputeDispatch(device,width,height, L"DesaturateShader.cso"));
 	compute.push_back( new ComputeDispatch(device,width,height, L"DefaultComputeShader.cso"));
 	compute.push_back( new ComputeDispatch(device,width,height, L"IntensityShader.cso"));
+	compute.push_back( new ComputeDispatch(device,width,height, L"BlurShader.cso"));
 	for (auto& c : compute)
 	{
 		c->SetSRV(deferredRenderer->GetFinalTexture(), 0);
@@ -674,7 +675,7 @@ bool DX12System::KeyReleased(int key)
 	return !(keys[key] & 0x80) && (prevKeys[key] & 0x80);
 }
 
-bool postProcess = false;
+bool postProcess = true;
 int effects = 0;
 int intensity = 2;
 //----------------------------------------------------------------------

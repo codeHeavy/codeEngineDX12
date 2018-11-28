@@ -117,7 +117,7 @@ void ComputeDispatch::Dispatch(ID3D12GraphicsCommandList* commandList, int const
 	commandList->SetComputeRootDescriptorTable(1, uavHeap.hGPU(0));
 	commandList->SetPipelineState(computePSO);
 
-	commandList->Dispatch(viewWidth, viewHeight, 1);
+	commandList->Dispatch(viewWidth/16, viewHeight/16, 1);
 }
 
 CDescriptorHeapWrapper& ComputeDispatch::GetResultDescriptor()

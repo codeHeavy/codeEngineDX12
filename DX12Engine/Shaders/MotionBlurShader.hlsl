@@ -1,7 +1,7 @@
 
 cbuffer constants : register(b0)
 {
-	float4x4 blurAmount;
+	float4x4 preViewProj;
 }
 
 Texture2D image;
@@ -13,17 +13,18 @@ void main( uint3 DTid : SV_DispatchThreadID )
 {
 	float4 a = image[DTid.xy];
 	float4 b = worldPos[DTid.xy];
+	float4x4 c = preViewProj;
 
-	// Current viewport position
-	float4 currentPos = H;
-	// Use the world position, and transform by the previous view-
-	// projection matrix.
-	float4 previousPos = mul(worldPos, prevViewProj);
-	// Convert to nonhomogeneous points [-1,1] by dividing by w.
-	previousPos /= previousPos.w;
-	// Use this frame's position and last frame's to compute the pixel
-	// velocity.
-	float2 velocity = (currentPos - previousPos) / 2.f;
+	//// Current viewport position
+	//float4 currentPos = H;
+	//// Use the world position, and transform by the previous view-
+	//// projection matrix.
+	//float4 previousPos = mul(worldPos, prevViewProj);
+	//// Convert to nonhomogeneous points [-1,1] by dividing by w.
+	//previousPos /= previousPos.w;
+	//// Use this frame's position and last frame's to compute the pixel
+	//// velocity.
+	//float2 velocity = (currentPos - previousPos) / 2.f;
 
-	output[DTid.xy] = b;
+	//output[DTid.xy] = b;
 }

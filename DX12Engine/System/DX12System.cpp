@@ -641,7 +641,7 @@ void DX12System::BuildViewProjMatrix()
 	camera->UpdateProjectionMatrix(width, height);
 	PSCBuffer.CamPos = DirectX::XMFLOAT3(camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z);
 	
-	motionBlur = new MotionBlur(device, width, height, L"MotionBlurShader.cso");
+	motionBlur = new MotionBlur(device,camera, width, height, L"MotionBlurShader.cso");
 	motionBlur->SetSRV(deferredRenderer->GetFinalTexture(), 0);
 	motionBlur->SetSRV(deferredRenderer->GetWorldPosTexture(), 1);
 	motionBlur->SetUAV(0);
@@ -802,6 +802,7 @@ void DX12System::UpdatePipeline()
 
 
 	deferredRenderer->RenderSkybox(commandList, rtvHandle, skyIndex);
+	motionBlur->SetConstBuffers(commandList, prevViewProj);
 	motionBlur->Dispatch(commandList, intensity);
 	if (postProcessOn) 
 	{

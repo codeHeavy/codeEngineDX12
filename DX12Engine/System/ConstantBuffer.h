@@ -17,3 +17,8 @@ struct PSConstantBuffer
 	PointLight pLight;
 	XMFLOAT3 CamPos;
 };
+
+struct MotionBlurConst
+{
+	XMFLOAT4X4 preViewProjection;
+};

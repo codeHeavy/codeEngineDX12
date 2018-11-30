@@ -802,7 +802,7 @@ void DX12System::UpdatePipeline()
 
 
 	deferredRenderer->RenderSkybox(commandList, rtvHandle, skyIndex);
-	motionBlur->SetConstBuffers(commandList, prevViewProj);
+	motionBlur->SetConstBuffers(prevViewProj);
 	motionBlur->Dispatch(commandList, intensity);
 	if (postProcessOn) 
 	{

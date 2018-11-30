@@ -38,7 +38,7 @@ public:
 
 	void SetSRV(ID3D12Resource* textureSRV, int index);
 	void SetUAV(int index);
-	void SetConstBuffers(ID3D12GraphicsCommandList* commandList, XMFLOAT4X4 prevVPMa);
+	void SetConstBuffers(XMFLOAT4X4 prevVPMa);
 	void Dispatch(ID3D12GraphicsCommandList* commandList, int constValue);
 	CDescriptorHeapWrapper& GetResultDescriptor();
 };

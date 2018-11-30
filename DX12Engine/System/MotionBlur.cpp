@@ -162,7 +162,7 @@ void MotionBlur::CreateConstantBuffers()
 	constBuffer->Map(0, &readRange, reinterpret_cast<void**>(&constantBufferGPUAddress));
 }
 
-void MotionBlur::SetConstBuffers(ID3D12GraphicsCommandList* commandList, XMFLOAT4X4 prevVPMat)
+void MotionBlur::SetConstBuffers(XMFLOAT4X4 prevVPMat)
 {
 	XMStoreFloat4x4(&constants.preViewProjection, XMMatrixTranspose(XMLoadFloat4x4(&prevVPMat)));	// store transposed wvp matrix in constant buffer
 

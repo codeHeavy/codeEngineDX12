@@ -26,12 +26,15 @@ DefferedRenderer::~DefferedRenderer()
 	dsvHeap.pDH->Release();
 	rtvHeap.pDH->Release();
 	srvHeap.pDH->Release();
+	
+	cbHeap.pDH->Release();
+	pcbHeap.pDH->Release();
 
 	SAFE_RELEASE(rootSignature);
 
-	//delete constantBufferGPUAddress;				// pointer to memory location
-	//delete constantBufferGPUAddressLight;				// pointer to memory location
-	//delete constantBufferGPUAddressShape;				// pointer to memory location
+	constantBufferGPUAddress		= nullptr;				// pointer to memory location
+	constantBufferGPUAddressLight	= nullptr;				// pointer to memory location
+	constantBufferGPUAddressShape	= nullptr;				// pointer to memory location
 
 	delete sphereMesh;
 	delete cubeMesh;
@@ -409,7 +412,6 @@ void DefferedRenderer::ApplyGBufferPSO(ID3D12GraphicsCommandList * command, bool
 	command->SetDescriptorHeaps(1, ppHeap2);
 	command->SetGraphicsRootDescriptorTable(1, pcbHeap.hGPU(0));
 	memcpy(constantBufferGPUAddressLight, &pixelCb, sizeof(PSConstantBuffer));
-
 }
 
 void DefferedRenderer::ApplyLightingPSO(ID3D12GraphicsCommandList * command, bool bSetPSO, const PSConstantBuffer& pixelCb)

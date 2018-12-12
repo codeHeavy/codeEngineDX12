@@ -1,12 +1,16 @@
 #include "Texture.h"
 #include "System/ImageLoader.h"
-
+#include "WICTextureLoader.h"
 
 Texture::Texture(std::wstring path, ID3D12Device1 * device, ID3D12GraphicsCommandList * commandList) : path(path), device(device), commandList(commandList)
 {
 	LoadTexture(path);
 }
 
+Texture::Texture(std::wstring path, ID3D12Device1 * device, ID3D12GraphicsCommandList * commandList, DirectX::ResourceUploadBatch &resourceBatch) : path(path), device(device), commandList(commandList)
+{
+	DirectX::CreateWICTextureFromFile(device, resourceBatch, path.c_str(), &textureBuffer);
+}
 
 Texture::~Texture()
 {

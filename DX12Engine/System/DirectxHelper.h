@@ -9,13 +9,16 @@
 class CDescriptorHeapWrapper
 {
 public:
+	D3D12_DESCRIPTOR_HEAP_DESC Desc;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> pDH;
+	D3D12_CPU_DESCRIPTOR_HANDLE hCPUHeapStart;
+	D3D12_GPU_DESCRIPTOR_HANDLE hGPUHeapStart;
+	UINT HandleIncrementSize;
+
+public:
 	CDescriptorHeapWrapper() { memset(this, 0, sizeof(*this)); }
 
-	HRESULT Create(
-		ID3D12Device* pDevice,
-		D3D12_DESCRIPTOR_HEAP_TYPE Type,
-		UINT NumDescriptors,
-		bool bShaderVisible = false)
+	HRESULT Create(	ID3D12Device* pDevice,	D3D12_DESCRIPTOR_HEAP_TYPE Type, UINT NumDescriptors, bool bShaderVisible = false)
 	{
 		Desc.Type = Type;
 		Desc.NumDescriptors = NumDescriptors;
@@ -60,10 +63,10 @@ public:
 		handle.ptr = MakeOffsetted(hGPUHeapStart.ptr, index);
 		return handle;
 	}
-	D3D12_DESCRIPTOR_HEAP_DESC Desc;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> pDH;
-	D3D12_CPU_DESCRIPTOR_HANDLE hCPUHeapStart;
-	D3D12_GPU_DESCRIPTOR_HANDLE hGPUHeapStart;
-	UINT HandleIncrementSize;
+
+	~CDescriptorHeapWrapper()
+	{
+		pDH.Reset();
+	};
 };
 

@@ -51,6 +51,8 @@ void MotionBlur::CreateRootSignature()
 	DirectX::CreateRootSignature(device, &descRootSignature, &rootSignature);
 	srvHeap.Create(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 8, true);
 	uavHeap.Create(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 8, true);
+
+	rootSigBlob->Release();
 }
 
 void MotionBlur::CreatePipelineStateObject()

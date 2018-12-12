@@ -1,6 +1,7 @@
 #pragma once
 #include <d3d12.h>
 #include <string>
+#include "WICTextureLoader.h"
 class Texture
 {
 private:
@@ -12,6 +13,7 @@ private:
 	std::wstring path;
 public:
 	Texture(std::wstring path, ID3D12Device1 * device, ID3D12GraphicsCommandList * commandList);
+	Texture(std::wstring path, ID3D12Device1 * device, ID3D12GraphicsCommandList * commandList, DirectX::ResourceUploadBatch &resourceBatch);
 	~Texture();
 
 	HRESULT LoadTexture(std::wstring path);

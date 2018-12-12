@@ -1,8 +1,7 @@
 
 #include "DX12System.h"
 #include "DDSTextureLoader.h"
-#include "OBJ_Loader.h"
-//
+
 int ConstantBufferPerObjectAlignedSize = (sizeof(ConstantBuffer) + 255) & ~255;
 DX12System* DX12System::dxInstance = 0;
 
@@ -271,48 +270,50 @@ bool DX12System::InitD3D()
 	{
 		return false;
 	}
-
+	tempSwapChain->Release();
 	return true;
 }
 int index = 0;
 int skyIndex = 0;
 void DX12System::Loadtextures()
 {
+	DirectX::ResourceUploadBatch resourceUpload(device);
+	resourceUpload.Begin();
 
-	albedoList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/cobblestone_albedo.png", device, commandList));
-	normalList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/cobblestone_normals.png", device, commandList));
-	roughnessList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/cobblestone_roughness.png", device, commandList));
-	metalList.push_back		(std::make_unique<Texture>(L"Assets/Images/Textures/cobblestone_metal.png", device, commandList));
-
-	albedoList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/floor_albedo.png", device, commandList));
-	normalList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/floor_normals.png", device, commandList));
-	roughnessList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/floor_roughness.png", device, commandList));
-	metalList.push_back		(std::make_unique<Texture>(L"Assets/Images/Textures/floor_metal.png", device, commandList));
-
-	albedoList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/paint_albedo.png", device, commandList));
-	normalList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/paint_normals.png", device, commandList));
-	roughnessList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/paint_roughness.png", device, commandList));
-	metalList.push_back		(std::make_unique<Texture>(L"Assets/Images/Textures/paint_metal.png", device, commandList));
-
-	albedoList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/bronze_albedo.png", device, commandList));
-	normalList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/bronze_normals.png", device, commandList));
-	roughnessList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/bronze_roughness.png", device, commandList));
-	metalList.push_back		(std::make_unique<Texture>(L"Assets/Images/Textures/bronze_metal.png", device, commandList));
-
-	albedoList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/rough_albedo.png", device, commandList));
-	normalList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/rough_normals.png", device, commandList));
-	roughnessList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/rough_roughness.png", device, commandList));
-	metalList.push_back		(std::make_unique<Texture>(L"Assets/Images/Textures/rough_metal.png", device, commandList));
-
-	albedoList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/wood_albedo.png", device, commandList));
-	normalList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/wood_normals.png", device, commandList));
-	roughnessList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/wood_roughness.png", device, commandList));
-	metalList.push_back		(std::make_unique<Texture>(L"Assets/Images/Textures/wood_metal.png", device, commandList));
-
-	albedoList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/scratched_albedo.png", device, commandList));
-	normalList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/scratched_normals.png", device, commandList));
-	roughnessList.push_back	(std::make_unique<Texture>(L"Assets/Images/Textures/scratched_roughness.png", device, commandList));
-	metalList.push_back		(std::make_unique<Texture>(L"Assets/Images/Textures/scratched_metal.png", device, commandList));
+	albedoList.push_back	(new Texture(L"Assets/Images/Textures/cobblestone_albedo.png", device, commandList, resourceUpload));
+	normalList.push_back	(new Texture(L"Assets/Images/Textures/cobblestone_normals.png", device, commandList, resourceUpload));
+	roughnessList.push_back	(new Texture(L"Assets/Images/Textures/cobblestone_roughness.png", device, commandList, resourceUpload));
+	metalList.push_back		(new Texture(L"Assets/Images/Textures/cobblestone_metal.png", device, commandList, resourceUpload));
+	
+	albedoList.push_back	(new Texture(L"Assets/Images/Textures/floor_albedo.png", device, commandList));
+	normalList.push_back	(new Texture(L"Assets/Images/Textures/floor_normals.png", device, commandList));
+	roughnessList.push_back	(new Texture(L"Assets/Images/Textures/floor_roughness.png", device, commandList));
+	metalList.push_back		(new Texture(L"Assets/Images/Textures/floor_metal.png", device, commandList));
+	
+	albedoList.push_back	(new Texture(L"Assets/Images/Textures/paint_albedo.png", device, commandList));
+	normalList.push_back	(new Texture(L"Assets/Images/Textures/paint_normals.png", device, commandList));
+	roughnessList.push_back	(new Texture(L"Assets/Images/Textures/paint_roughness.png", device, commandList));
+	metalList.push_back		(new Texture(L"Assets/Images/Textures/paint_metal.png", device, commandList));
+	
+	albedoList.push_back	(new Texture(L"Assets/Images/Textures/bronze_albedo.png", device, commandList));
+	normalList.push_back	(new Texture(L"Assets/Images/Textures/bronze_normals.png", device, commandList));
+	roughnessList.push_back	(new Texture(L"Assets/Images/Textures/bronze_roughness.png", device, commandList));
+	metalList.push_back		(new Texture(L"Assets/Images/Textures/bronze_metal.png", device, commandList));
+	
+	albedoList.push_back	(new Texture(L"Assets/Images/Textures/rough_albedo.png", device, commandList));
+	normalList.push_back	(new Texture(L"Assets/Images/Textures/rough_normals.png", device, commandList));
+	roughnessList.push_back	(new Texture(L"Assets/Images/Textures/rough_roughness.png", device, commandList));
+	metalList.push_back		(new Texture(L"Assets/Images/Textures/rough_metal.png", device, commandList));
+	
+	albedoList.push_back	(new Texture(L"Assets/Images/Textures/wood_albedo.png", device, commandList));
+	normalList.push_back	(new Texture(L"Assets/Images/Textures/wood_normals.png", device, commandList));
+	roughnessList.push_back	(new Texture(L"Assets/Images/Textures/wood_roughness.png", device, commandList));
+	metalList.push_back		(new Texture(L"Assets/Images/Textures/wood_metal.png", device, commandList));
+	
+	albedoList.push_back	(new Texture(L"Assets/Images/Textures/scratched_albedo.png", device, commandList));
+	normalList.push_back	(new Texture(L"Assets/Images/Textures/scratched_normals.png", device, commandList));
+	roughnessList.push_back	(new Texture(L"Assets/Images/Textures/scratched_roughness.png", device, commandList));
+	metalList.push_back		(new Texture(L"Assets/Images/Textures/scratched_metal.png", device, commandList));
 	int i;
 	for ( i = 0; i < albedoList.size(); i++)
 	{
@@ -323,8 +324,7 @@ void DX12System::Loadtextures()
 		++index;
 	}
 
-	DirectX::ResourceUploadBatch resourceUpload(device);
-	resourceUpload.Begin();
+
 	//// Load the skybox texture from a DDS file
 	CreateDDSTextureFromFile(device, resourceUpload, L"Assets/Images/Skyboxes/DirtRoadEnvHDR.dds", &skyTextureBuffer);
 	CreateDDSTextureFromFile(device, resourceUpload, L"Assets/Images/Skyboxes/DirtRoadDiffuseHDR.dds", &skyIRTextureBuffer);
@@ -336,30 +336,6 @@ void DX12System::Loadtextures()
 	skyIndex = index;
 	//deferredRenderer->SetCubeSRV(skyIRTextureBuffer, ++index);
 	deferredRenderer->SetPBRTextures(skyIRTextureBuffer, skyPreFilterTextureBuffer, skyBrdfTextureBuffer);
-}
-
-//---------------------------------------------------------------
-// Convert OBJ loader vertex to our custom vertex
-//---------------------------------------------------------------
-Vertex ObjlToVertex(objl::Vertex vertex)
-{
-	auto pos = XMFLOAT3(vertex.Position.X, vertex.Position.Y, vertex.Position.Z);
-	auto normal = XMFLOAT3(vertex.Normal.X, vertex.Normal.Y, vertex.Normal.Z);
-	auto uv = XMFLOAT2(vertex.TextureCoordinate.X, vertex.TextureCoordinate.Y);
-	return { pos, uv, normal };
-}
-
-//------------------------------------------------------------------------------
-// Convert an array/vector of OBJ loader vertices to our custom vertex array
-//------------------------------------------------------------------------------
-std::vector<Vertex> ObjlToVertex(std::vector<objl::Vertex> vertices)
-{
-	std::vector<Vertex> verts;
-	for (auto v : vertices)
-	{
-		verts.push_back(ObjlToVertex(v));
-	}
-	return verts;
 }
 
 
@@ -522,11 +498,7 @@ bool DX12System::SetupResources()
 	
 	
 	mesh = new Mesh("Assets/Models/sphere.obj", device, commandList);
-	/*objl::Loader loader;
-	loader.LoadFile("Assets/Models/sphere.obj");
-	auto verts = ObjlToVertex(loader.LoadedVertices);
-	auto indices = loader.LoadedIndices;
-	Mesh* mesh = new Mesh(verts.data(), verts.size(), indices.data(), indices.size(), device, commandList);*/
+	
 	// Create depth stencil
 	// Create depth stencil descriptor heap
 	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
@@ -626,7 +598,9 @@ bool DX12System::SetupResources()
 	scissorRect.bottom = height;
 
 	BuildViewProjMatrix();
-
+	signature->Release();
+	vertexShader->Release();
+	pixelShader->Release();
 	return true;
 }
 
@@ -808,8 +782,8 @@ void DX12System::UpdatePipeline()
 	{
 		postProcessFilters[effects]->Dispatch(commandList,intensity);
 	}
-	deferredRenderer->DrawFinal(commandList, rtvHandle, motionBlur->GetResultDescriptor(), postProcessOn);
-	//deferredRenderer->DrawFinal(commandList, rtvHandle, postProcessFilters[effects]->GetResultDescriptor(), postProcessOn);
+	//deferredRenderer->DrawFinal(commandList, rtvHandle, motionBlur->GetResultDescriptor(), postProcessOn);
+	deferredRenderer->DrawFinal(commandList, rtvHandle, postProcessFilters[effects]->GetResultDescriptor(), postProcessOn);
 	
 	// transition render target from render target state to curtrrent state
 	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTargets[frameIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
@@ -908,10 +882,13 @@ void DX12System::Cleanup()
 	for (int i = 0; i < frameBufferCount; ++i)
 	{
 		SAFE_RELEASE(constantBufferUploadHeap[i]);
+		constantBufferGPUAddress[i] = nullptr;
 	};
-
+	
 	SAFE_RELEASE(skyTextureBuffer);
 	SAFE_RELEASE(skyIRTextureBuffer);
+	SAFE_RELEASE(skyPreFilterTextureBuffer);
+	SAFE_RELEASE(skyBrdfTextureBuffer);
 	
 	for (auto &p : postProcessFilters)
 	{
@@ -923,6 +900,28 @@ void DX12System::Cleanup()
 	delete mesh;
 	delete cube1;
 	
+	SAFE_RELEASE(prevWorldPos);
+	SAFE_RELEASE(currentWorldPos);
+	delete motionBlur;
+
+	for (auto a : albedoList)
+	{
+		delete a;
+	}
+	for (auto a : normalList)
+	{
+		delete a;
+	}
+	for (auto a : roughnessList)
+	{
+		delete a;
+	}
+	for (auto a : metalList)
+	{
+		delete a;
+	}
+
+
 }
 
 //----------------------------------------------------------------------
@@ -953,19 +952,14 @@ void DX12System::WaitForPreviousFrame()
 
 void DX12System::OnMouseDown(WPARAM buttonState, int x, int y)
 {
-	// Save the previous mouse position, so we have it for the future
+	// Save the previous mouse position
 	prevMousePos.x = x;
 	prevMousePos.y = y;
 
-	// Caputure the mouse so we keep getting mouse move
-	// events even if the mouse leaves the window.  we'll be
-	// releasing the capture once a mouse button is released
 	SetCapture(hwnd);
 }
 void DX12System::OnMouseUp(WPARAM buttonState, int x, int y)
 {
-	// We don't care about the tracking the cursor outside
-	// the window anymore (we're not dragging if the mouse is up)
 	ReleaseCapture();
 }
 void DX12System::OnMouseMove(WPARAM buttonState, int x, int y)

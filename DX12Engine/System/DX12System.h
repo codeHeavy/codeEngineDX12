@@ -33,7 +33,11 @@ public:
 
 	// Create static instance
 	static DX12System* GetInstance();
-
+	static void ResetInstance()
+	{
+		delete dxInstance; // REM : it works even if the pointer is NULL (does nothing then)
+		dxInstance = nullptr; // so GetInstance will still work.
+	}
 	// Window handles
 	HWND hwnd = NULL;						// Windows handle
 	LPCWSTR windowName = L"codeEngineDX12";		// Window name
@@ -61,6 +65,10 @@ public:
 	LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 	// Direct X 12 Setup
+	ID3D12Device1* device;
+	IDXGIAdapter1* adapter;
+	IDXGIFactory4* dxgiFactory;
+	IDXGISwapChain3* swapChain;
 	ID3D12CommandQueue* commandQueue;							// Command list container
 	ID3D12DescriptorHeap* rtvDescrioptorHeap;					// holds resources like render target
 	ID3D12Resource* renderTargets[BUFFERCOUNT];					// Number of render targets = buffer count
@@ -81,10 +89,6 @@ public:
 	bool SetupResources();										// Setup resources to draw
 	void Draw();												// Set command lists to draw
 
-	ID3D12Device1* device;
-	IDXGIAdapter1* adapter;
-	IDXGIFactory4* dxgiFactory;
-	IDXGISwapChain3* swapChain;
 	int adapterIndex = 0;
 	bool adapterFound = false;
 	bool running = true;
@@ -147,10 +151,10 @@ public:
 	byte prevKeys[256];
 
 	void Loadtextures();
-	std::vector<std::unique_ptr<Texture>> albedoList;
-	std::vector<std::unique_ptr<Texture>> normalList;
-	std::vector<std::unique_ptr<Texture>> roughnessList;
-	std::vector<std::unique_ptr<Texture>> metalList;
+	std::vector<Texture*> albedoList;
+	std::vector<Texture*> normalList;
+	std::vector<Texture*> roughnessList;
+	std::vector<Texture*> metalList;
 
 	bool KeyDown(int key);
 	bool KeyPressed(int key);
